@@ -8,14 +8,14 @@
 <link rel="preload" href="fonts/SpaceGrotesk-500-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="fonts.css?v=2">
 <link rel="stylesheet" href="../styles.css">
-<link rel="stylesheet" href="admin.css?v=3">
+<link rel="stylesheet" href="admin.css?v=4">
 </head>
 <body>
-<div id="bg"><div class="grid"></div><div class="glow g1"></div><div class="glow g2"></div><div class="noise"></div><div class="motes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="scan"></div><div class="vig"></div></div>
+<div id="bg"><div class="grid"></div><div class="noise"></div></div>
 <main class="admin-wrap">
-  <div id="toast-box"></div>
+  <div id="toast-box" role="status" aria-live="polite"></div>
   <section id="login-view" class="acard">
-    <div class="ahead">> admin<span class="cursor"></span></div>
+    <div class="ahead">ADMIN<span class="cursor"></span><small>polonium ops ledger</small></div>
     <label>e-mail<input id="a-email" type="email" autocomplete="username"></label>
     <label>hasło<input id="a-pass" type="password" autocomplete="current-password"></label>
     <button id="a-login" class="abtn">zaloguj</button>
