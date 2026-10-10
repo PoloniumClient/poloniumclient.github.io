@@ -48,7 +48,7 @@ $('a-login').onclick = async () => {
     const j = await r.json();
     if (!r.ok) throw new Error((j && j.error) || 'błąd');
     $('a-pass').value = '';
-(async () => { await msCallback(); refresh(); })();
+    refresh();
   } catch (e) {
     $('a-err').textContent = 'błąd: ' + String(e.message || e).slice(0, 120);
   }
@@ -248,4 +248,4 @@ async function loadDownloads() {
   ).join('') || 'brak pobrań';
 }
 
-refresh();
+(async () => { await msCallback(); refresh(); })();
