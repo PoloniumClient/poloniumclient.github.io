@@ -1,11 +1,11 @@
-/* Strony dokumentów — dossier prose. */
-.doc{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:64px 20px 80px;color:var(--ink,#16150f)}
-.doc a{color:var(--blue,#2b4dff);font:700 12.5px "JetBrains Mono",monospace;text-decoration:none}
-.doc a:hover{text-decoration:underline}
-.doc h1{font-family:"Darker Grotesque",sans-serif;font-weight:900;font-size:46px;text-transform:uppercase;letter-spacing:0;margin:18px 0 10px;line-height:1}
-.doc h2{font-family:"Darker Grotesque",sans-serif;font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:.5px;margin:32px 0 8px}
-.doc h2::before{content:'';display:inline-block;width:10px;height:10px;background:var(--blue,#2b4dff);margin-right:10px;transform:rotate(45deg)}
-.doc p,.doc li{font-size:13px;line-height:1.75;color:var(--dim,#6e6857)}
-.doc b{color:var(--ink,#16150f)}
+/* Strony dokumentów — prose w języku title screen. */
+.doc{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:64px 20px 80px;color:var(--txt,#f2f0e9)}
+.doc a{color:var(--blue2,#9a6bff);font:700 12.5px "JetBrains Mono",monospace;text-decoration:none}
+.doc a:hover{text-decoration:underline;color:var(--hazard,#ffd52e)}
+.doc h1{font-family:"Darker Grotesque",sans-serif;font-weight:900;font-size:48px;text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px;line-height:.95;text-shadow:0 4px 0 var(--blue-dim,#241a7a),0 0 40px var(--blue-glow,rgba(122,86,255,.5))}
+.doc h2{font-family:"Darker Grotesque",sans-serif;font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:1px;margin:32px 0 8px;color:var(--txt,#f2f0e9)}
+.doc h2::before{content:'';display:inline-block;width:10px;height:10px;background:var(--blue);box-shadow:0 0 12px var(--blue-glow,rgba(122,86,255,.5));margin-right:10px;transform:rotate(45deg)}
+.doc p,.doc li{font-size:12.5px;line-height:1.8;color:var(--dim,#8b88b8)}
+.doc b{color:var(--txt,#f2f0e9)}
 .doc ul{margin:8px 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
-.doc li::marker{color:var(--blue,#2b4dff)}
+.doc li::marker{color:var(--blue2,#9a6bff)}
