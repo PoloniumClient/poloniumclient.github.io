@@ -8,7 +8,7 @@
   font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.55;color:var(--txt);background:var(--bg);
 }
 #bg{position:fixed;inset:0;background:var(--bg);z-index:0;pointer-events:none}
-#bg .grid{position:absolute;inset:0;background-image:linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px);background-size:30px 30px}
+#bg .grid{display:block;position:absolute;inset:0;background-image:linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px);background-size:30px 30px}
 #bg .noise{position:absolute;inset:0;opacity:.04}
 #bg .glow{display:none}
 .admin-wrap ::selection{background:var(--blue);color:#fff}
