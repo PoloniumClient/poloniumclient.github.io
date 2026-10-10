@@ -36,3 +36,6 @@
 #a-newpass{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:6px 10px;font-size:12px;width:150px;outline:none}
 #a-newpass:focus{border-color:var(--acc)}
 #a-passmsg{font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);margin:-8px 0 12px;min-height:14px}
+#a-ms{width:100%;margin-top:8px;background:#1f1f22;color:#fff;border:1px solid var(--line2,#2f3740)}
+#a-ms:hover{border-color:var(--acc);color:var(--acc)}
+#adm-msg{font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98)}

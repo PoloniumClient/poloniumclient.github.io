@@ -1,6 +1,8 @@
 // Polonium admin — wszystko przez Edge Function + cookies (logged=false/true).
 // Zero bezpośredniego dostępu do bazy ze strony statycznej.
 const API = 'https://jofzsdbebwbjbsitetli.supabase.co/functions/v1/admin';
+const MS_CLIENT_ID = '825aea54-7021-4f34-85bc-909e943ce704';
+const MS_REDIRECT = 'https://poloniumclient.github.io/admin/';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -46,7 +48,7 @@ $('a-login').onclick = async () => {
     const j = await r.json();
     if (!r.ok) throw new Error((j && j.error) || 'błąd');
     $('a-pass').value = '';
-    refresh();
+(async () => { await msCallback(); refresh(); })();
   } catch (e) {
     $('a-err').textContent = 'błąd: ' + String(e.message || e).slice(0, 120);
   }
@@ -70,6 +72,40 @@ $('a-setpass').onclick = async () => {
   }
 };
 
+// --- login Microsoft (Entra code flow, sekret po stronie funkcji) ---
+$('a-ms').onclick = () => {
+  const st = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join('');
+  try { sessionStorage.setItem('ms_state', st); } catch {}
+  const u = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
+  u.search.set('client_id', MS_CLIENT_ID);
+  u.search.set('response_type', 'code');
+  u.search.set('redirect_uri', MS_REDIRECT);
+  u.search.set('scope', 'openid profile email');
+  u.search.set('state', st);
+  u.search.set('response_mode', 'query');
+  location.href = u.toString();
+};
+async function msCallback() {
+  const q = new URLSearchParams(location.search);
+  const code = q.get('code'), state = q.get('state');
+  if (!code) return false;
+  let saved = null;
+  try { saved = sessionStorage.getItem('ms_state'); sessionStorage.removeItem('ms_state'); } catch {}
+  try { history.replaceState(null, '', location.pathname); } catch {}
+  if (!state || state !== saved) { $('a-err').textContent = 'ms: zły state'; return true; }
+  try {
+    const r = await fetch(API + '/ms-exchange', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', body: JSON.stringify({ code })
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error((j && j.error) || 'błąd');
+  } catch (e) {
+    $('a-err').textContent = 'ms: ' + String(e.message || e).slice(0, 120);
+  }
+  return true;
+}
+
 // --- tabs ---
 document.querySelectorAll('.atabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.atabs button').forEach(x => x.classList.remove('active'));
@@ -79,9 +115,26 @@ document.querySelectorAll('.atabs button').forEach(b => b.onclick = () => {
 });
 
 async function loadAll() {
-  try { await Promise.all([loadTickets(), loadLicenses(), loadKill(), loadUpdates(), loadAttempts(), loadDownloads()]); }
+  try { await Promise.all([loadTickets(), loadLicenses(), loadKill(), loadUpdates(), loadAttempts(), loadDownloads(), loadAdmins()]); }
   catch (e) { /* 401 handled in api() */ }
 }
+
+// --- admin e-maile (allowlista Microsoft) ---
+async function loadAdmins() {
+  try {
+    const r = await api('admins.get');
+    $('adm-emails').value = (r.emails || []).join(', ');
+  } catch {}
+}
+$('adm-save').onclick = async () => {
+  const emails = $('adm-emails').value.split(/[,\s;]+/).map(s => s.trim()).filter(Boolean);
+  try {
+    await api('admins.set', { emails });
+    $('adm-msg').textContent = 'zapisano';
+  } catch (e) {
+    $('adm-msg').textContent = 'błąd: ' + String(e.message || e).slice(0, 100);
+  }
+};
 
 // --- tickety ---
 async function loadTickets() {
