@@ -32,3 +32,7 @@
 #lic-new{font:13px "JetBrains Mono",monospace;color:var(--acc);margin-bottom:10px;word-break:break-all}
 #kill-box .big{font-size:15px;margin-bottom:10px}
 .ok-dot{color:#4ade80}.err-dot{color:#ff5d5d}
+.hrow{display:flex;gap:6px;align-items:center}
+#a-newpass{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:6px 10px;font-size:12px;width:150px;outline:none}
+#a-newpass:focus{border-color:var(--acc)}
+#a-passmsg{font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);margin:-8px 0 12px;min-height:14px}

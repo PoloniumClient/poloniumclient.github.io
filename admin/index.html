@@ -18,7 +18,8 @@
     <p id="a-err"></p>
   </section>
   <section id="panel-view" class="hidden">
-    <header class="ahead row"><span>polonium · admin</span><button id="a-logout">wyloguj</button></header>
+    <header class="ahead row"><span>polonium · admin</span><span class="hrow"><input id="a-newpass" type="password" placeholder="nowe hasło" autocomplete="new-password"><button id="a-setpass" class="abtn ghost">zmień</button><button id="a-logout">wyloguj</button></span></header>
+    <div id="a-passmsg"></div>
     <nav class="atabs">
       <button data-t="tickets" class="active">tickety <b id="c-tickets"></b></button>
       <button data-t="licenses">licencje</button>
@@ -47,7 +48,6 @@
     <div class="atab" id="tab-downloads"><div id="dl-list"></div></div>
   </section>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
 </body>
 </html>
