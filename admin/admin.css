@@ -84,6 +84,43 @@
 @keyframes toastIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
 .toast button{background:var(--acc);border:0;border-radius:8px;color:#10130a;font-weight:700;padding:7px 15px;cursor:pointer;flex:none}
 .toast button:hover{filter:brightness(1.06)}
+/* ---------- extra motion layer ---------- */
+.motes{position:absolute;inset:0;overflow:hidden}
+.motes i{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--acc);opacity:.35;filter:blur(1px);animation:mote 11s ease-in-out infinite}
+.motes i:nth-child(1){left:12%;top:68%}
+.motes i:nth-child(2){left:24%;top:30%;animation-delay:-3s;animation-duration:13s}
+.motes i:nth-child(3){left:47%;top:75%;animation-delay:-6s;width:4px;height:4px}
+.motes i:nth-child(4){left:63%;top:22%;animation-delay:-2s;animation-duration:9s}
+.motes i:nth-child(5){left:79%;top:58%;animation-delay:-8s;width:6px;height:6px;opacity:.25}
+.motes i:nth-child(6){left:88%;top:35%;animation-delay:-5s;animation-duration:14s}
+.motes i:nth-child(7){left:35%;top:50%;animation-delay:-1s;width:3px;height:3px}
+.motes i:nth-child(8){left:55%;top:85%;animation-delay:-9s;animation-duration:12s}
+@keyframes mote{0%,100%{transform:translateY(0);opacity:.12}50%{transform:translateY(-46px);opacity:.4}}
+#panel-view{position:relative}
+#panel-view::before{content:'';position:absolute;top:0;left:8%;right:8%;height:2px;border-radius:99px;background:linear-gradient(90deg,transparent,var(--acc),transparent);background-size:200% 100%;animation:barSlide 5s linear infinite;opacity:.8}
+@keyframes barSlide{from{background-position:200% 0}to{background-position:-200% 0}}
+.acard input,.arow input,.arow textarea,.arow select,#a-newpass,#a-nick,#lic-days{transition:border-color .18s,box-shadow .18s,transform .18s}
+.acard input:focus,.arow input:focus,.arow textarea:focus{transform:translateY(-1px)}
+.abtn{transition:transform .13s cubic-bezier(.2,.9,.3,1.4),box-shadow .18s,filter .15s,border-color .15s,color .15s}
+.atabs button{transition:transform .15s,box-shadow .2s,background .2s,color .15s,border-color .15s}
+.atabs button.active{animation:tabGlow 2.6s ease-in-out infinite}
+@keyframes tabGlow{0%,100%{box-shadow:0 6px 20px -6px var(--acc)}50%{box-shadow:0 6px 30px -2px var(--acc)}}
+.atab.active{animation:tabIn .3s cubic-bezier(.2,.8,.3,1) both}
+@keyframes tabIn{from{opacity:0;transform:translateY(10px) scale(.995)}to{opacity:1;transform:none}}
+.trow,.lrow,.urow,.arow2{transition:transform .16s cubic-bezier(.2,.8,.3,1.2),border-color .16s,box-shadow .2s,background .16s}
+.urow:nth-child(2){animation-delay:.03s}.urow:nth-child(3){animation-delay:.06s}.urow:nth-child(n+4){animation-delay:.09s}
+.arow2:nth-child(2){animation-delay:.03s}.arow2:nth-child(3){animation-delay:.06s}.arow2:nth-child(n+4){animation-delay:.09s}
+.abtn:active{transform:translateY(1px) scale(.98)}
+.atabs button:active{transform:scale(.96)}
+#ticket-conv:not(.hidden){animation:tabIn .3s ease both}
+#conv-msgs,#t-msgs{scroll-behavior:smooth}
+.cmsg{transition:border-color .2s,box-shadow .2s,transform .2s}
+.cmsg:hover{transform:translateY(-1px)}
+#conv-ops .abtn{transition:transform .13s,box-shadow .18s,filter .15s,border-color .15s,color .15s}
+.acard,.abtn,.atabs button,.trow,.lrow{will-change:transform}
+#a-login{position:relative}
+#a-login::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(110deg,transparent 30%,#ffffff2e 50%,transparent 70%);background-size:250% 100%;background-position:200% 0;transition:background-position 0s;pointer-events:none}
+#a-login:hover::after{background-position:-120% 0;transition:background-position .8s ease}
 /* ---------- formularze panelu ---------- */
 #a-newpass,#a-nick{background:#0b0d10;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:7px 11px;font-size:12px;width:150px;outline:none}
 #a-newpass:focus,#a-nick:focus{border-color:var(--acc)}
