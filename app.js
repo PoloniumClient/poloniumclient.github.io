@@ -171,6 +171,7 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
   document.querySelectorAll('.buy-open').forEach(b => b.onclick = open);
   fab.onclick = () => panel.classList.contains('hidden') ? open() : close();
   document.getElementById('chat-x').onclick = close;
+  document.getElementById('chat-new').onclick = () => { resetChat(''); open(); };
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   document.querySelectorAll('.chat-days button').forEach(b => b.onclick = () => {
     document.querySelectorAll('.chat-days button').forEach(x => x.classList.remove('active'));
