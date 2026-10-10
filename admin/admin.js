@@ -157,11 +157,11 @@ async function loadTickets() {
       `<div class="ops"><button class="abtn ghost bchat">chat</button>` +
       (t.status === 'open' ? `<button class="abtn ghost bclose">zamknij</button><button class="abtn danger bcancel">anuluj</button>` : '') + `</div>`;
     const bchat = d.querySelector('.bchat'), bclose = d.querySelector('.bclose'), bcancel = d.querySelector('.bcancel');
-    const box = d.querySelector('.amsgs');
+    const mbox = d.querySelector('.amsgs');
     async function showMsgs() {
       try {
         const msgs = await api('tickets.messages', { id: t.id });
-        box.innerHTML = (msgs || []).map(m =>
+        mbox.innerHTML = (msgs || []).map(m =>
           `<div class="arow2"><b>${esc(m.sender)}</b><small>${esc(m.text)}</small>` +
           `<small class="dim">${new Date(m.created_at).toLocaleString('pl-PL')}</small></div>`
         ).join('') +
@@ -174,39 +174,39 @@ async function loadTickets() {
              </div>
              <div class="arow"><input placeholder="odpowiedź..." data-r="${esc(t.id)}"><button class="abtn ghost breply">wyślij</button></div>`
           : `<div class="ops"><button class="abtn ghost breopen">otwórz ponownie</button></div>`);
-        const inp = box.querySelector('input[data-r]');
-        const btn = box.querySelector('.breply');
+        const inp = mbox.querySelector('input[data-r]');
+        const btn = mbox.querySelector('.breply');
         if (inp && btn) btn.onclick = async () => {
           const text = inp.value.trim();
           if (!text) return;
           await api('tickets.reply', { id: t.id, text });
           showMsgs();
         };
-        box.querySelectorAll('.qf').forEach(qb => qb.onclick = () => {
-          const i2 = box.querySelector('input[data-r]');
+        mbox.querySelectorAll('.qf').forEach(qb => qb.onclick = () => {
+          const i2 = mbox.querySelector('input[data-r]');
           if (i2) { i2.value = qb.dataset.t; i2.focus(); }
         });
-        const qg = box.querySelector('.qgen');
+        const qg = mbox.querySelector('.qgen');
         if (qg) qg.onclick = async () => {
           try {
             const r = await api('licenses.create', { label: (t.nick + ' • ' + (t.plan || '')).slice(0, 32) });
-            const i2 = box.querySelector('input[data-r]');
+            const i2 = mbox.querySelector('input[data-r]');
             if (i2) { i2.value = 'Twój klucz: ' + r.key + ' — wpisz go w launcherze w zakładce Licencja.'; i2.focus(); }
             loadLicenses();
           } catch (e) { /* ignore */ }
         };
-        const ro = box.querySelector('.breopen');
+        const ro = mbox.querySelector('.breopen');
         if (ro) ro.onclick = async () => {
           await api('tickets.reopen', { id: t.id });
           loadTickets();
         };
       } catch (e) {
-        box.innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 80));
+        mbox.innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 80));
       }
     }
     bchat.onclick = () => {
-      if (box.dataset.open) { box.innerHTML = ''; delete box.dataset.open; }
-      else { box.dataset.open = '1'; showMsgs(); }
+      if (mbox.dataset.open) { mbox.innerHTML = ''; delete mbox.dataset.open; }
+      else { mbox.dataset.open = '1'; showMsgs(); }
     };
     if (bclose) bclose.onclick = async () => {
       await api('tickets.close', { id: t.id });
