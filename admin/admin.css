@@ -114,3 +114,13 @@
 button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 @media (max-width:640px){.admin-wrap{padding:24px 10px 60px}#panel-view{padding:16px}.cmsg{max-width:94%}}
+/* ---------- izolacja od ciemnego styles.css strony ---------- */
+html,body{background:#f2f0e9;color:#16150f}
+#bg{background:#f2f0e9 !important}
+#bg::after{content:none !important}
+#bg .grid{display:block !important;background-image:linear-gradient(#d5d2c6 1px,transparent 1px),linear-gradient(90deg,#d5d2c6 1px,transparent 1px) !important;background-size:28px 28px !important;opacity:.55 !important}
+#bg .noise{display:block !important}
+#bg .glow{display:none !important}
+section{padding:0}
+main{max-width:none;padding:0}
+h1,h2,h3{text-transform:none;text-shadow:none}
