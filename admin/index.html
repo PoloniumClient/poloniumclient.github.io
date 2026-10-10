@@ -4,34 +4,47 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Polonium — admin</title>
-<link rel="preload" href="fonts/Unbounded-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/SpaceGrotesk-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="fonts.css?v=2">
+<meta name="theme-color" content="#0e0d0b">
+<link rel="preload" href="fonts/DarkerGrotesque-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/JetBrainsMono-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts.css?v=3">
 <link rel="stylesheet" href="../styles.css">
-<link rel="stylesheet" href="admin.css?v=4">
+<link rel="stylesheet" href="admin.css?v=5">
 </head>
 <body>
-<div id="bg"><div class="grid"></div><div class="noise"></div></div>
+<div id="bg" aria-hidden="true"><div class="grid"></div><div class="noise"></div></div>
 <main class="admin-wrap">
   <div id="toast-box" role="status" aria-live="polite"></div>
-  <section id="login-view" class="acard">
-    <div class="ahead">ADMIN<span class="cursor"></span><small>polonium ops ledger</small></div>
-    <label>e-mail<input id="a-email" type="email" autocomplete="username"></label>
+
+  <section id="login-view" class="acard" aria-label="logowanie">
+    <div class="ahead">ADMIN<span class="cursor" aria-hidden="true"></span><small>polonium ops ledger</small></div>
+    <label>e-mail<input id="a-email" type="email" autocomplete="username" spellcheck="false"></label>
     <label>hasło<input id="a-pass" type="password" autocomplete="current-password"></label>
     <button id="a-login" class="abtn">zaloguj</button>
     <button id="a-ms" class="abtn ms">zaloguj przez Microsoft</button>
-    <p id="a-err"></p>
+    <p id="a-err" role="alert"></p>
   </section>
-  <section id="panel-view" class="hidden">
-    <header class="ahead row"><span>polonium · admin</span><span class="hrow"><input id="a-nick" placeholder="twój nick" autocomplete="off"><input id="a-newpass" type="password" placeholder="nowe hasło" autocomplete="new-password"><button id="a-setpass" class="abtn ghost">zmień</button><button id="a-logout">wyloguj</button></span></header>
-    <div id="a-passmsg"></div>
-    <div id="stats-row">
+
+  <section id="panel-view" class="hidden" aria-label="panel">
+    <header class="ahead row">
+      <span>polonium · admin</span>
+      <span class="hrow">
+        <input id="a-nick" placeholder="twój nick" autocomplete="off" aria-label="nick admina">
+        <input id="a-newpass" type="password" placeholder="nowe hasło" autocomplete="new-password" aria-label="nowe hasło">
+        <button id="a-setpass" class="abtn ghost">zmień</button>
+        <button id="a-logout">wyloguj</button>
+      </span>
+    </header>
+    <div id="a-passmsg" role="status"></div>
+
+    <div id="stats-row" aria-label="statystyki">
       <div class="stat"><b id="st-open">–</b><small>otwarte tickety</small></div>
       <div class="stat"><b id="st-lic">–</b><small>aktywne licencje</small></div>
       <div class="stat"><b id="st-dl">–</b><small>pobrania 24h</small></div>
       <div class="stat"><b id="st-fail">–</b><small>nieudane próby 24h</small></div>
     </div>
-    <nav class="atabs">
+
+    <nav class="atabs" aria-label="sekcje panelu">
       <button data-t="tickets" class="active">tickety <b id="c-tickets"></b></button>
       <button data-t="licenses">licencje</button>
       <button data-t="kill">kill-switch</button>
@@ -39,42 +52,65 @@
       <button data-t="attempts">próby</button>
       <button data-t="downloads">pobrania</button>
     </nav>
-    <div class="atab active" id="tab-tickets"><div id="ticket-list"></div>
+
+    <div class="atab active" id="tab-tickets">
+      <div id="ticket-list"></div>
       <div id="ticket-conv" class="hidden">
         <button id="conv-back" class="abtn ghost">← tickety</button>
         <div id="conv-head"></div>
-        <div id="conv-msgs"></div>
-        <div class="qfill" id="conv-qf">
+        <div id="conv-msgs" aria-live="polite"></div>
+        <div class="qfill" id="conv-qf" role="group" aria-label="szybkie odpowiedzi">
           <button class="abtn ghost" data-t="Płatność zaksięgowana ✅ Klucz generuję poniżej.">płatność ✓</button>
           <button class="abtn ghost" data-t="Dziękujemy za zakup! Opłać na Tipply (tytuł = id ticketa, nick zgodny z nickiem) i daj znać tutaj.">dzięki</button>
           <button class="abtn ghost" data-t="Podaj nick z Tipply — musi zgadzać się z nickiem z ticketa, inaczej nie znajdę wpłaty.">nick?</button>
           <button class="abtn ghost" id="conv-keygen">🎲 key</button>
         </div>
-        <div class="arow" id="conv-reply"><input id="conv-input" placeholder="odpowiedź..." autocomplete="off"><button id="conv-send" class="abtn">wyślij</button></div>
+        <div class="arow" id="conv-reply">
+          <input id="conv-input" placeholder="odpowiedź..." autocomplete="off" aria-label="odpowiedź">
+          <button id="conv-send" class="abtn">wyślij</button>
+        </div>
         <div class="arow" id="conv-ops"></div>
       </div>
     </div>
+
     <div class="atab" id="tab-licenses">
-      <div class="arow"><input id="lic-label" placeholder="label np. vip" autocomplete="off"><select id="lic-days"><option value="1">1D</option><option value="7">7D</option><option value="30" selected>30D</option><option value="lifetime">lifetime</option></select><button id="lic-gen" class="abtn">generuj klucz</button></div>
-      <div id="lic-new"></div>
+      <div class="arow">
+        <input id="lic-label" placeholder="label np. vip" autocomplete="off" aria-label="label klucza">
+        <select id="lic-days" aria-label="czas licencji">
+          <option value="1">1D</option>
+          <option value="7">7D</option>
+          <option value="30" selected>30D</option>
+          <option value="lifetime">lifetime</option>
+        </select>
+        <button id="lic-gen" class="abtn">generuj klucz</button>
+      </div>
+      <div id="lic-new" role="status"></div>
       <div id="lic-list"></div>
     </div>
-    <div class="atab" id="tab-kill"><div id="kill-box"></div>
-      <div class="arow col"><label>admin e-maile (microsoft)<input id="adm-emails" placeholder="a@x, b@y" autocomplete="off"></label><button id="adm-save" class="abtn">zapisz</button><span id="adm-msg"></span></div>
+
+    <div class="atab" id="tab-kill">
+      <div id="kill-box"></div>
+      <div class="arow col">
+        <label>admin e-maile (microsoft)<input id="adm-emails" placeholder="a@x, b@y" autocomplete="off" spellcheck="false"></label>
+        <button id="adm-save" class="abtn">zapisz</button>
+        <span id="adm-msg" role="status"></span>
+      </div>
     </div>
+
     <div class="atab" id="tab-updates">
       <div class="arow col">
-        <input id="up-ver" placeholder="wersja np. 0.4.37" autocomplete="off">
-        <input id="up-url" placeholder="url do exe" autocomplete="off">
-        <textarea id="up-log" rows="2" placeholder="changelog"></textarea>
+        <input id="up-ver" placeholder="wersja np. 0.4.37" autocomplete="off" aria-label="wersja">
+        <input id="up-url" placeholder="url do exe" autocomplete="off" spellcheck="false" aria-label="url">
+        <textarea id="up-log" rows="2" placeholder="changelog" aria-label="changelog"></textarea>
         <button id="up-add" class="abtn">dodaj update</button>
       </div>
       <div id="up-list"></div>
     </div>
+
     <div class="atab" id="tab-attempts"><div id="att-list"></div></div>
     <div class="atab" id="tab-downloads"><div id="dl-list"></div></div>
   </section>
 </main>
-<script src="admin.js?v=7"></script>
+<script src="admin.js?v=8"></script>
 </body>
 </html>

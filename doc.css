@@ -1,0 +1,10 @@
+/* Strony dokumentów (regulamin/prywatność) — ledger prose. */
+.doc{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:64px 20px;color:var(--txt,#f2ede1)}
+.doc a{color:var(--acc,#caff3d);font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none}
+.doc a:hover{text-decoration:underline}
+.doc h1{font-family:"Darker Grotesk",sans-serif;font-weight:900;font-size:40px;letter-spacing:-.5px;margin:18px 0 10px}
+.doc h2{font-family:"Darker Grotesk",sans-serif;font-weight:700;font-size:20px;margin:30px 0 8px;color:var(--acc,#caff3d)}
+.doc p,.doc li{font-size:14.5px;line-height:1.7;color:var(--dim,#a89a83)}
+.doc b{color:var(--txt,#f2ede1)}
+.doc ul{margin:8px 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.doc li::marker{color:var(--acc,#caff3d)}
