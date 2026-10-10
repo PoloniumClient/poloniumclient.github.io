@@ -42,3 +42,4 @@
 .qfill{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .qfill .abtn{font-size:11px;padding:5px 10px}
 .amsgs{margin-top:8px}
+#lic-days{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:8px;font:700 12px "JetBrains Mono",monospace;outline:none;cursor:pointer}

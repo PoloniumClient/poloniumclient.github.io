@@ -189,7 +189,9 @@ async function loadTickets() {
         const qg = mbox.querySelector('.qgen');
         if (qg) qg.onclick = async () => {
           try {
-            const r = await api('licenses.create', { label: (t.nick + ' • ' + (t.plan || '')).slice(0, 32) });
+            const pm = String(t.plan || '').toLowerCase();
+            const days = pm.includes('life') ? 'lifetime' : ((pm.match(/(\d+)/) || [])[1] || '30');
+            const r = await api('licenses.create', { label: (t.nick + ' • ' + (t.plan || '')).slice(0, 32), days });
             const i2 = mbox.querySelector('input[data-r]');
             if (i2) { i2.value = 'Twój klucz: ' + r.key + ' — wpisz go w launcherze w zakładce Licencja.'; i2.focus(); }
             loadLicenses();
@@ -225,8 +227,9 @@ async function loadTickets() {
 // --- licencje (klucze generuje endpoint) ---
 $('lic-gen').onclick = async () => {
   const label = $('lic-label').value.trim().slice(0, 32);
+  const days = $('lic-days').value;
   try {
-    const r = await api('licenses.create', { label });
+    const r = await api('licenses.create', { label, days });
     $('lic-new').textContent = 'NOWY KLUCZ: ' + r.key + ' — skopiuj, nie pokaże się znowu w całości';
     $('lic-label').value = '';
     loadLicenses();
@@ -243,7 +246,8 @@ async function loadLicenses() {
     const d = document.createElement('div');
     d.className = 'lrow';
     d.innerHTML = `<b>${esc(l.key)}</b> ${l.active ? '' : '<span class="st-off">OFF</span>'}` +
-      `<small>${esc(l.label || '')} · hwid: ${esc(l.hwid || '—')} · seen: ${l.last_seen_at ? new Date(l.last_seen_at).toLocaleString('pl-PL') : '—'}</small>` +
+      (l.expires_at && new Date(l.expires_at) <= new Date() ? ' <span class="st-off">WYGASŁ</span>' : '') +
+      `<small>${esc(l.label || '')} · hwid: ${esc(l.hwid || '—')} · seen: ${l.last_seen_at ? new Date(l.last_seen_at).toLocaleString('pl-PL') : '—'} · wygasa: ${l.expires_at ? new Date(l.expires_at).toLocaleString('pl-PL') : '∞'}</small>` +
       `<div class="ops"><button class="abtn ghost t1">${l.active ? 'wyłącz' : 'włącz'}</button>` +
       `<button class="abtn ghost t2">reset hwid</button>` +
       `<button class="abtn danger t3">usuń</button></div>`;
