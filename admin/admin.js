@@ -207,6 +207,23 @@ async function activityTick() {
   } catch {}
 }
 setInterval(activityTick, 8000);
+async function loadStats() {
+  try {
+    if ($('panel-view').classList.contains('hidden')) return;
+    const [tickets, licenses, dls, atts] = await Promise.all([
+      api('tickets.list'), api('licenses.list'),
+      api('downloads.list'), api('attempts.list')
+    ]);
+    const day = Date.now() - 24 * 3600 * 1000;
+    const now = new Date();
+    $('st-open').textContent = tickets.filter(t => t.status === 'open').length;
+    $('st-lic').textContent = licenses.filter(l => l.active && (!l.expires_at || new Date(l.expires_at) > now)).length;
+    $('st-dl').textContent = dls.filter(d => new Date(d.created_at).getTime() > day).length;
+    $('st-fail').textContent = atts.filter(a => !a.ok && new Date(a.created_at).getTime() > day).length;
+  } catch {}
+}
+setInterval(loadStats, 12000);
+setTimeout(loadStats, 1500);
 
 // --- tickety ---
 async function loadTickets() {

@@ -6,9 +6,9 @@
 <title>Polonium — admin</title>
 <link rel="preload" href="fonts/Unbounded-900-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/SpaceGrotesk-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="fonts.css?v=2">
 <link rel="stylesheet" href="../styles.css">
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
 <div id="bg"><div class="grid"></div><div class="glow g1"></div><div class="glow g2"></div><div class="noise"></div><div class="motes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
@@ -25,6 +25,12 @@
   <section id="panel-view" class="hidden">
     <header class="ahead row"><span>polonium · admin</span><span class="hrow"><input id="a-nick" placeholder="twój nick" autocomplete="off"><input id="a-newpass" type="password" placeholder="nowe hasło" autocomplete="new-password"><button id="a-setpass" class="abtn ghost">zmień</button><button id="a-logout">wyloguj</button></span></header>
     <div id="a-passmsg"></div>
+    <div id="stats-row">
+      <div class="stat"><b id="st-open">–</b><small>otwarte tickety</small></div>
+      <div class="stat"><b id="st-lic">–</b><small>aktywne licencje</small></div>
+      <div class="stat"><b id="st-dl">–</b><small>pobrania 24h</small></div>
+      <div class="stat"><b id="st-fail">–</b><small>nieudane próby 24h</small></div>
+    </div>
     <nav class="atabs">
       <button data-t="tickets" class="active">tickety <b id="c-tickets"></b></button>
       <button data-t="licenses">licencje</button>
@@ -69,6 +75,6 @@
     <div class="atab" id="tab-downloads"><div id="dl-list"></div></div>
   </section>
 </main>
-<script src="admin.js?v=6"></script>
+<script src="admin.js?v=7"></script>
 </body>
 </html>
