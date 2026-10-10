@@ -9,7 +9,7 @@
 <link rel="preload" href="fonts/JetBrainsMono-500-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="fonts.css?v=5">
 <link rel="stylesheet" href="../styles.css">
-<link rel="stylesheet" href="admin.css?v=9">
+<link rel="stylesheet" href="admin.css?v=10">
 </head>
 <body>
 <div id="bg" aria-hidden="true"><div class="grid"></div><div class="noise"></div></div>
@@ -54,6 +54,12 @@
     </nav>
 
     <div class="atab active" id="tab-tickets">
+      <div class="tfilters" role="group" aria-label="filtr ticketów">
+        <button data-f="open" class="active">otwarte</button>
+        <button data-f="closed">zamknięte</button>
+        <button data-f="cancelled">anulowane</button>
+        <button data-f="all">wszystkie</button>
+      </div>
       <div id="ticket-list"></div>
       <div id="ticket-conv" class="hidden">
         <button id="conv-back" class="abtn ghost">← tickety</button>
@@ -111,6 +117,6 @@
     <div class="atab" id="tab-downloads"><div id="dl-list"></div></div>
   </section>
 </main>
-<script src="admin.js?v=8"></script>
+<script src="admin.js?v=9"></script>
 </body>
 </html>

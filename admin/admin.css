@@ -116,3 +116,8 @@ section{padding:0}
 button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--blue2);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 @media (max-width:640px){.admin-wrap{padding:24px 10px 60px}#panel-view{padding:16px}.cmsg{max-width:94%}}
+/* ---------- filtr ticketów ---------- */
+.tfilters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tfilters button{background:var(--panel2);border:2px solid var(--line2);color:var(--dim);padding:6px 14px;cursor:pointer;font:900 13px "Darker Grotesque",sans-serif;letter-spacing:.5px;text-transform:uppercase;box-shadow:inset 2px 2px 0 #ffffff0a, 0 3px 0 #00000059;transition:filter .12s,color .12s,background .12s}
+.tfilters button:hover{color:#fff;filter:brightness(1.12)}
+.tfilters button.active{color:#fff;background:linear-gradient(180deg,var(--blue2),var(--blue));border-color:#000}

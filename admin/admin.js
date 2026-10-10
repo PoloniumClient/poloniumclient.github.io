@@ -226,14 +226,29 @@ setInterval(loadStats, 12000);
 setTimeout(loadStats, 1500);
 
 // --- tickety ---
+let ticketFilter = 'open';
+document.querySelectorAll('.tfilters button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tfilters button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  ticketFilter = b.dataset.f;
+  loadTickets();
+});
 async function loadTickets() {
   const box = $('ticket-list');
   box.innerHTML = '...';
   const data = await api('tickets.list');
   const open = data.filter(t => t.status === 'open').length;
   $('c-tickets').textContent = open ? `(${open})` : '';
-  box.innerHTML = data.length ? '' : 'brak ticketów';
-  data.forEach(t => {
+  const counts = { open: 0, closed: 0, cancelled: 0, all: data.length };
+  data.forEach(t => { if (counts[t.status] !== undefined) counts[t.status]++; });
+  document.querySelectorAll('.tfilters button').forEach(b => {
+    const f = b.dataset.f;
+    const base = { open: 'otwarte', closed: 'zamknięte', cancelled: 'anulowane', all: 'wszystkie' }[f];
+    b.textContent = counts[f] ? base + ' (' + counts[f] + ')' : base;
+  });
+  const list = ticketFilter === 'all' ? data : data.filter(t => t.status === ticketFilter);
+  box.innerHTML = list.length ? '' : (ticketFilter === 'open' ? 'brak otwartych ticketów' : ticketFilter === 'closed' ? 'brak zamkniętych' : ticketFilter === 'cancelled' ? 'brak anulowanych' : 'brak ticketów');
+  list.forEach(t => {
     const d = document.createElement('div');
     d.className = 'trow';
     const stCls = t.status === 'open' ? 'st-open' : (t.status === 'cancelled' ? 'st-off' : 'st-closed');
