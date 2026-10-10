@@ -182,6 +182,7 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
     } catch {}
     resetChat('Ticket zamknięty. Dzięki!');
   };
+  if (ticketId) { form.classList.add('hidden'); document.getElementById('chat-plan').style.display = 'none'; inputRow.classList.remove('hidden'); syncActions(); poll(); }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   document.querySelectorAll('.chat-days button').forEach(b => b.onclick = () => {
     document.querySelectorAll('.chat-days button').forEach(x => x.classList.remove('active'));
@@ -207,6 +208,15 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
     msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
   }
+  function syncActions() {
+    const bar = document.getElementById('chat-actions');
+    const a = document.getElementById('chat-full');
+    if (!bar || !a) return;
+    if (ticketId) {
+      a.href = '/ticket/?id=' + encodeURIComponent(ticketId);
+      bar.classList.remove('hidden');
+    } else bar.classList.add('hidden');
+  }
   function resetChat(msg) {
     ticketId = null;
     try { localStorage.removeItem('polonium-ticket'); } catch {}
@@ -214,6 +224,7 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
     document.getElementById('chat-plan').style.display = '';
     inputRow.classList.add('hidden');
     msgs.innerHTML = '';
+    syncActions();
     if (msg) bubble('auto', msg);
   }
   async function poll() {
@@ -246,10 +257,7 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
       if (!r.ok) throw new Error(j.error || 'błąd');
       ticketId = j.id;
       try { localStorage.setItem('polonium-ticket', JSON.stringify({ id: ticketId })); } catch {}
-      form.classList.add('hidden');
-      document.getElementById('chat-plan').style.display = 'none';
-      inputRow.classList.remove('hidden');
-      poll();
+      location.href = '/ticket/?id=' + encodeURIComponent(ticketId);
     } catch (e) {
       bubble('auto', 'błąd: ' + String(e.message || e).slice(0, 120));
     }
