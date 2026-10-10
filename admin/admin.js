@@ -80,7 +80,7 @@ $('a-ms').onclick = () => {
   u.searchParams.set('client_id', MS_CLIENT_ID);
   u.searchParams.set('response_type', 'code');
   u.searchParams.set('redirect_uri', MS_REDIRECT);
-  u.searchParams.set('scope', 'openid profile email');
+  u.searchParams.set('scope', 'openid profile email User.Read');
   u.searchParams.set('state', st);
   u.searchParams.set('response_mode', 'query');
   location.href = u.toString();
