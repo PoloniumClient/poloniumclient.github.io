@@ -42,6 +42,9 @@
 .qfill{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .qfill .abtn{font-size:11px;padding:5px 10px}
 .amsgs{margin-top:8px}
+#toast-box{position:fixed;top:14px;right:14px;z-index:100;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--panel,#15181c);border:1px solid var(--acc);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;font-size:13px;box-shadow:0 12px 30px #000}
+.toast button{background:var(--acc);border:0;border-radius:7px;color:#10130a;font-weight:700;padding:6px 14px;cursor:pointer}
 /* widok konwersacji: typowy chat */
 #conv-head{margin:10px 0 4px}
 #conv-head small{display:block;font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);margin-top:2px}

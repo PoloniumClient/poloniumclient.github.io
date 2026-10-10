@@ -137,6 +137,77 @@ $('adm-save').onclick = async () => {
   }
 };
 
+// --- live: nowe tickety same się otwierają, nowe wiadomości = toast + dźwięk ---
+const knownAct = { tickets: new Set(), msgs: new Map(), init: false };
+function beep() {
+  try {
+    const C = window.AudioContext || window.webkitAudioContext;
+    const ctx = new C();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880; g.gain.value = 0.12;
+    o.start(); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    o.stop(ctx.currentTime + 0.45);
+  } catch {}
+}
+function toast(text, ticketId) {
+  const box = $('toast-box');
+  if (!box) return;
+  const d = document.createElement('div');
+  d.className = 'toast';
+  d.innerHTML = `<span>${esc(text)}</span><button>Otwórz</button>`;
+  d.querySelector('button').onclick = () => {
+    try { d.remove(); } catch {}
+    try { document.querySelector('.atabs button[data-t="tickets"]').click(); } catch {}
+    openTicket(ticketId);
+  };
+  box.appendChild(d);
+  setTimeout(() => { try { d.remove(); } catch {} }, 25000);
+  beep();
+  try { document.title = '(•) Polonium — admin'; } catch {}
+}
+document.addEventListener('pointerdown', () => {
+  try { if (!$('toast-box').querySelector('.toast')) document.title = 'Polonium — admin'; } catch {}
+});
+async function activityTick() {
+  try {
+    if ($('panel-view').classList.contains('hidden')) return;
+    const a = await api('activity.recent');
+    const ids = new Set((a.tickets || []).map(t => t.id));
+    if (!knownAct.init) {
+      ids.forEach(id => knownAct.tickets.add(id));
+      (a.messages || []).forEach(m => {
+        const cur = knownAct.msgs.get(m.ticket_id) || 0;
+        if (m.id > cur) knownAct.msgs.set(m.ticket_id, m.id);
+      });
+      knownAct.init = true;
+      return;
+    }
+    for (const t of (a.tickets || [])) {
+      if (!knownAct.tickets.has(t.id)) {
+        knownAct.tickets.add(t.id);
+        loadTickets();
+        const typing = (($('conv-input') && $('conv-input').value.trim()) ||
+          (document.activeElement && document.activeElement.tagName === 'INPUT'));
+        if (!typing) openTicket(t.id);
+        else toast('Nowy ticket', t.id);
+      }
+    }
+    for (const m of (a.messages || [])) {
+      const cur = knownAct.msgs.get(m.ticket_id) || 0;
+      if (m.id > cur) {
+        knownAct.msgs.set(m.ticket_id, m.id);
+        if (m.sender === 'user' && m.ticket_id !== convId) {
+          const nm = (m.tickets && m.tickets.nick) || String(m.ticket_id).slice(0, 8);
+          toast('Nowa wiadomość: ' + nm, m.ticket_id);
+        }
+      }
+    }
+    if (convId) loadConv(true);
+  } catch {}
+}
+setInterval(activityTick, 8000);
+
 // --- tickety ---
 async function loadTickets() {
   const box = $('ticket-list');
