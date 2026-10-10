@@ -148,14 +148,15 @@ async function loadTickets() {
   data.forEach(t => {
     const d = document.createElement('div');
     d.className = 'trow';
-    d.innerHTML = `<b>${esc(t.nick)}</b> → ${esc(t.contact)} <span class="${t.status === 'open' ? 'st-open' : 'st-closed'}">${esc(t.status)}</span>` +
+    const stCls = t.status === 'open' ? 'st-open' : (t.status === 'cancelled' ? 'st-off' : 'st-closed');
+    d.innerHTML = `<b>${esc(t.nick)}</b> → ${esc(t.contact)} <span class="${stCls}">${esc(t.status)}</span>` +
       `<small>plan: ${esc(t.plan)} · ${new Date(t.created_at).toLocaleString('pl-PL')}</small>` +
       (t.message ? `<small>msg: ${esc(t.message)}</small>` : '') +
       `<small class="dim">#${esc(t.id.slice(0, 8))}</small>` +
       `<div class="amsgs" id="msgs-${esc(t.id)}"></div>` +
       `<div class="ops"><button class="abtn ghost bchat">chat</button>` +
-      (t.status === 'open' ? `<button class="abtn ghost bclose">zamknij</button>` : '') + `</div>`;
-    const [bchat, bclose] = d.querySelectorAll('button');
+      (t.status === 'open' ? `<button class="abtn ghost bclose">zamknij</button><button class="abtn danger bcancel">anuluj</button>` : '') + `</div>`;
+    const bchat = d.querySelector('.bchat'), bclose = d.querySelector('.bclose'), bcancel = d.querySelector('.bcancel');
     const box = d.querySelector('.amsgs');
     async function showMsgs() {
       try {
@@ -210,6 +211,12 @@ async function loadTickets() {
     if (bclose) bclose.onclick = async () => {
       await api('tickets.close', { id: t.id });
       loadTickets();
+    };
+    if (bcancel) bcancel.onclick = async () => {
+      if (confirm('anulować ticket ' + t.nick + '?')) {
+        await api('tickets.cancel', { id: t.id });
+        loadTickets();
+      }
     };
     box.appendChild(d);
   });
