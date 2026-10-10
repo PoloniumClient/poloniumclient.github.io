@@ -42,4 +42,17 @@
 .qfill{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .qfill .abtn{font-size:11px;padding:5px 10px}
 .amsgs{margin-top:8px}
+/* widok konwersacji: typowy chat */
+#conv-head{margin:10px 0 4px}
+#conv-head small{display:block;font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);margin-top:2px}
+#conv-msgs{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow:auto;padding:6px 2px}
+.cmsg{max-width:88%;background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:10px;padding:7px 11px;font-size:13px;align-self:flex-start}
+.cmsg b{display:block;font-size:11px;color:var(--dim,#8a8f98);margin-bottom:1px}
+.cmsg p{margin:0;white-space:pre-wrap;word-break:break-word}
+.cmsg small{display:block;font:10px "JetBrains Mono",monospace;opacity:.6;margin-top:2px}
+.cmsg.c-user{align-self:flex-start}
+.cmsg.c-admin{align-self:flex-end;border-color:#4f8cff}
+.cmsg.c-admin b{color:#4f8cff}
+.cmsg.c-auto{align-self:center;border-style:dashed;opacity:.85;font-size:12px}
+#a-nick{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:6px 10px;font-size:12px;width:130px;outline:none}
 #lic-days{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:8px;font:700 12px "JetBrains Mono",monospace;outline:none;cursor:pointer}

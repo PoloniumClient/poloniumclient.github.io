@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polonium — ticket</title>
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="ticket.css">
+</head>
+<body>
+<div id="bg"><div class="grid"></div><div class="glow g1"></div></div>
+<main class="t-wrap">
+  <div class="t-card">
+    <div class="t-head"><span>polonium · <b id="t-ref">ticket</b></span><span id="t-pill" class="pill">…</span></div>
+    <div class="t-sub" id="t-sub"></div>
+    <div id="t-form">
+      <div class="chat-days">
+        <button data-days="1" class="active">1D · 1zł</button>
+        <button data-days="7">7D · 7zł</button>
+        <button data-days="30">30D · 30zł</button>
+        <button data-days="lifetime">LIFE · 99zł</button>
+      </div>
+      <div class="chat-custom"><input id="t-days" type="number" min="1" max="30" placeholder="własna liczba dni (max 30)"><span id="t-price">1 zł</span></div>
+      <input id="t-nick" maxlength="24" placeholder="nick (musi zgadzać się z Tipply)" autocomplete="off">
+      <input id="t-contact" maxlength="64" placeholder="kontakt: discord / e-mail" autocomplete="off">
+      <button id="t-start" class="btn big">start</button>
+    </div>
+    <div id="t-msgs"></div>
+    <div id="t-input" class="hidden"><input id="t-text" maxlength="1000" placeholder="wiadomość..."><button id="t-send">➤</button></div>
+    <div class="t-foot"><button id="t-close" class="hidden">zamknij ticket</button><a href="../">← strona główna</a></div>
+  </div>
+</main>
+<script src="ticket.js"></script>
+</body>
+</html>

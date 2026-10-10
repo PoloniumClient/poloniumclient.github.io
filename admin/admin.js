@@ -150,79 +150,115 @@ async function loadTickets() {
     d.className = 'trow';
     const stCls = t.status === 'open' ? 'st-open' : (t.status === 'cancelled' ? 'st-off' : 'st-closed');
     d.innerHTML = `<b>${esc(t.nick)}</b> → ${esc(t.contact)} <span class="${stCls}">${esc(t.status)}</span>` +
-      `<small>plan: ${esc(t.plan)} · ${new Date(t.created_at).toLocaleString('pl-PL')}</small>` +
-      (t.message ? `<small>msg: ${esc(t.message)}</small>` : '') +
-      `<small class="dim">#${esc(t.id.slice(0, 8))}</small>` +
-      `<div class="amsgs" id="msgs-${esc(t.id)}"></div>` +
-      `<div class="ops"><button class="abtn ghost bchat">chat</button>` +
-      (t.status === 'open' ? `<button class="abtn ghost bclose">zamknij</button><button class="abtn danger bcancel">anuluj</button>` : '') + `</div>`;
-    const bchat = d.querySelector('.bchat'), bclose = d.querySelector('.bclose'), bcancel = d.querySelector('.bcancel');
-    const mbox = d.querySelector('.amsgs');
-    async function showMsgs() {
-      try {
-        const msgs = await api('tickets.messages', { id: t.id });
-        mbox.innerHTML = (msgs || []).map(m =>
-          `<div class="arow2"><b>${esc(m.sender)}</b><small>${esc(m.text)}</small>` +
-          `<small class="dim">${new Date(m.created_at).toLocaleString('pl-PL')}</small></div>`
-        ).join('') +
-        (t.status === 'open'
-          ? `<div class="qfill">
-               <button class="abtn ghost qf" data-t="Płatność zaksięgowana ✅ Klucz generuję poniżej.">płatność ✓</button>
-               <button class="abtn ghost qf" data-t="Dziękujemy za zakup! Opłać na Tipply (tytuł = id ticketa, nick zgodny z nickiem) i daj znać tutaj.">dzięki</button>
-               <button class="abtn ghost qf" data-t="Podaj nick z Tipply — musi zgadzać się z nickiem z ticketa, inaczej nie znajdę wpłaty.">nick?</button>
-               <button class="abtn ghost qgen">🎲 key</button>
-             </div>
-             <div class="arow"><input placeholder="odpowiedź..." data-r="${esc(t.id)}"><button class="abtn ghost breply">wyślij</button></div>`
-          : `<div class="ops"><button class="abtn ghost breopen">otwórz ponownie</button></div>`);
-        const inp = mbox.querySelector('input[data-r]');
-        const btn = mbox.querySelector('.breply');
-        if (inp && btn) btn.onclick = async () => {
-          const text = inp.value.trim();
-          if (!text) return;
-          await api('tickets.reply', { id: t.id, text });
-          showMsgs();
-        };
-        mbox.querySelectorAll('.qf').forEach(qb => qb.onclick = () => {
-          const i2 = mbox.querySelector('input[data-r]');
-          if (i2) { i2.value = qb.dataset.t; i2.focus(); }
-        });
-        const qg = mbox.querySelector('.qgen');
-        if (qg) qg.onclick = async () => {
-          try {
-            const pm = String(t.plan || '').toLowerCase();
-            const days = pm.includes('life') ? 'lifetime' : ((pm.match(/(\d+)/) || [])[1] || '30');
-            const r = await api('licenses.create', { label: (t.nick + ' • ' + (t.plan || '')).slice(0, 32), days });
-            const i2 = mbox.querySelector('input[data-r]');
-            if (i2) { i2.value = 'Twój klucz: ' + r.key + ' — wpisz go w launcherze w zakładce Licencja.'; i2.focus(); }
-            loadLicenses();
-          } catch (e) { /* ignore */ }
-        };
-        const ro = mbox.querySelector('.breopen');
-        if (ro) ro.onclick = async () => {
-          await api('tickets.reopen', { id: t.id });
-          loadTickets();
-        };
-      } catch (e) {
-        mbox.innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 80));
-      }
-    }
-    bchat.onclick = () => {
-      if (mbox.dataset.open) { mbox.innerHTML = ''; delete mbox.dataset.open; }
-      else { mbox.dataset.open = '1'; showMsgs(); }
-    };
-    if (bclose) bclose.onclick = async () => {
-      await api('tickets.close', { id: t.id });
-      loadTickets();
-    };
-    if (bcancel) bcancel.onclick = async () => {
-      if (confirm('anulować ticket ' + t.nick + '?')) {
-        await api('tickets.cancel', { id: t.id });
-        loadTickets();
-      }
-    };
+      `<small>${esc(t.plan || '')} · ${new Date(t.created_at).toLocaleString('pl-PL')} · #${esc(t.id.slice(0, 8))}</small>` +
+      `<div class="ops"><button class="abtn ghost">otwórz</button></div>`;
+    d.querySelector('button').onclick = () => openTicket(t.id);
     box.appendChild(d);
   });
 }
+
+let convId = null, convTimer = null;
+function adminNick() {
+  try { return (localStorage.getItem('polonium-admin-nick') || '').trim().slice(0, 24); } catch { return ''; }
+}
+async function openTicket(id) {
+  convId = id;
+  $('ticket-list').classList.add('hidden');
+  $('ticket-conv').classList.remove('hidden');
+  await loadConv();
+  clearInterval(convTimer);
+  convTimer = setInterval(() => { if (convId) loadConv(true); }, 4000);
+}
+function closeConv() {
+  convId = null;
+  clearInterval(convTimer);
+  $('ticket-conv').classList.add('hidden');
+  $('ticket-list').classList.remove('hidden');
+}
+async function loadConv(silent) {
+  if (!convId) return;
+  try {
+    const rows = await api('tickets.list');
+    const t = (rows || []).find(x => x.id === convId);
+    if (!t) { closeConv(); loadTickets(); return; }
+    const msgs = await api('tickets.messages', { id: convId });
+    const stCls = t.status === 'open' ? 'st-open' : (t.status === 'cancelled' ? 'st-off' : 'st-closed');
+    $('conv-head').innerHTML = `<b>${esc(t.nick)}</b> → ${esc(t.contact)} <span class="${stCls}">${esc(t.status)}</span>` +
+      `<small>${esc(t.plan || '')} · ${new Date(t.created_at).toLocaleString('pl-PL')} · #${esc(t.id.slice(0, 8))}</small>`;
+    const ops = $('conv-ops');
+    ops.innerHTML = '';
+    const mk = (label, cls, fn) => {
+      const b = document.createElement('button');
+      b.className = 'abtn ghost ' + (cls || '');
+      b.textContent = label;
+      b.onclick = fn;
+      ops.appendChild(b);
+    };
+    if (t.status === 'open') {
+      mk('zamknij', '', async () => { await api('tickets.close', { id: convId }); loadConv(); loadTickets(); });
+      mk('anuluj', 'danger', async () => {
+        if (confirm('anulować ticket ' + t.nick + '?')) { await api('tickets.cancel', { id: convId }); loadConv(); loadTickets(); }
+      });
+    } else {
+      mk('otwórz ponownie', '', async () => { await api('tickets.reopen', { id: convId }); loadConv(); loadTickets(); });
+    }
+    const mb = $('conv-msgs');
+    const nick = adminNick();
+    mb.innerHTML = (msgs || []).map(m => {
+      const cls = m.sender === 'user' ? 'user' : (m.sender === 'auto' ? 'auto' : 'admin');
+      const who = m.sender === 'user' ? esc(t.nick) : (m.sender === 'auto' ? 'auto' : esc(m.sender));
+      return `<div class="cmsg c-${cls}"><b>${who}</b><p>${esc(m.text)}</p>` +
+        `<small>${new Date(m.created_at).toLocaleString('pl-PL')}</small></div>`;
+    }).join('') || '<div class="cmsg c-auto"><p>brak wiadomości</p></div>';
+    mb.scrollTop = mb.scrollHeight;
+    $('conv-qf').style.display = t.status === 'open' ? '' : 'none';
+    $('conv-reply').style.display = t.status === 'open' ? '' : 'none';
+  } catch (e) {
+    if (!silent) $('conv-msgs').innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 80));
+  }
+}
+async function convSend() {
+  const inp = $('conv-input');
+  const text = inp.value.trim().slice(0, 1000);
+  if (!text || !convId) return;
+  inp.value = '';
+  try {
+    await api('tickets.reply', { id: convId, text, sender: adminNick() || 'admin' });
+    loadConv(true);
+  } catch {}
+}
+function convFill(text) {
+  const inp = $('conv-input');
+  inp.value = text;
+  inp.focus();
+}
+async function convKeygen() {
+  try {
+    const rows = await api('tickets.list');
+    const t = (rows || []).find(x => x.id === convId);
+    const r = await api('licenses.create', {
+      label: (((t && t.nick) || '') + ' • ' + ((t && t.plan) || '')).slice(0, 32),
+      days: planDays(t && t.plan)
+    });
+    convFill('Twój klucz: ' + r.key + ' — wpisz go w launcherze w zakładce Licencja.');
+    loadLicenses();
+  } catch {}
+}
+function planDays(plan) {
+  const p = String(plan || '').toLowerCase();
+  if (p.includes('life')) return 'lifetime';
+  const m = p.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 30;
+}
+$('conv-back').onclick = closeConv;
+$('conv-send').onclick = convSend;
+$('conv-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') convSend(); });
+$('conv-keygen').onclick = convKeygen;
+document.querySelectorAll('#conv-qf .abtn.ghost[data-t]').forEach(b => b.onclick = () => convFill(b.dataset.t));
+try { $('a-nick').value = adminNick(); } catch {}
+$('a-nick').addEventListener('input', (e) => {
+  try { localStorage.setItem('polonium-admin-nick', e.target.value.trim().slice(0, 24)); } catch {}
+});
 
 // --- licencje (klucze generuje endpoint) ---
 $('lic-gen').onclick = async () => {

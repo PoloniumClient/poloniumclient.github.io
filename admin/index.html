@@ -19,7 +19,7 @@
     <p id="a-err"></p>
   </section>
   <section id="panel-view" class="hidden">
-    <header class="ahead row"><span>polonium · admin</span><span class="hrow"><input id="a-newpass" type="password" placeholder="nowe hasło" autocomplete="new-password"><button id="a-setpass" class="abtn ghost">zmień</button><button id="a-logout">wyloguj</button></span></header>
+    <header class="ahead row"><span>polonium · admin</span><span class="hrow"><input id="a-nick" placeholder="twój nick" autocomplete="off"><input id="a-newpass" type="password" placeholder="nowe hasło" autocomplete="new-password"><button id="a-setpass" class="abtn ghost">zmień</button><button id="a-logout">wyloguj</button></span></header>
     <div id="a-passmsg"></div>
     <nav class="atabs">
       <button data-t="tickets" class="active">tickety <b id="c-tickets"></b></button>
@@ -29,7 +29,21 @@
       <button data-t="attempts">próby</button>
       <button data-t="downloads">pobrania</button>
     </nav>
-    <div class="atab active" id="tab-tickets"><div id="ticket-list"></div></div>
+    <div class="atab active" id="tab-tickets"><div id="ticket-list"></div>
+      <div id="ticket-conv" class="hidden">
+        <button id="conv-back" class="abtn ghost">← tickety</button>
+        <div id="conv-head"></div>
+        <div id="conv-msgs"></div>
+        <div class="qfill" id="conv-qf">
+          <button class="abtn ghost" data-t="Płatność zaksięgowana ✅ Klucz generuję poniżej.">płatność ✓</button>
+          <button class="abtn ghost" data-t="Dziękujemy za zakup! Opłać na Tipply (tytuł = id ticketa, nick zgodny z nickiem) i daj znać tutaj.">dzięki</button>
+          <button class="abtn ghost" data-t="Podaj nick z Tipply — musi zgadzać się z nickiem z ticketa, inaczej nie znajdę wpłaty.">nick?</button>
+          <button class="abtn ghost" id="conv-keygen">🎲 key</button>
+        </div>
+        <div class="arow" id="conv-reply"><input id="conv-input" placeholder="odpowiedź..." autocomplete="off"><button id="conv-send" class="abtn">wyślij</button></div>
+        <div class="arow" id="conv-ops"></div>
+      </div>
+    </div>
     <div class="atab" id="tab-licenses">
       <div class="arow"><input id="lic-label" placeholder="label np. vip" autocomplete="off"><select id="lic-days"><option value="1">1D</option><option value="7">7D</option><option value="30" selected>30D</option><option value="lifetime">lifetime</option></select><button id="lic-gen" class="abtn">generuj klucz</button></div>
       <div id="lic-new"></div>
