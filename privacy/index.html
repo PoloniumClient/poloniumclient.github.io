@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polonium — prywatność</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.doc{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:64px 20px;color:var(--txt,#d7d7db)}
+.doc h1{font-size:34px;margin:0 0 8px}
+.doc h2{font-size:17px;margin:28px 0 8px;color:var(--acc)}
+.doc p,.doc li{font-size:14px;line-height:1.7;color:var(--dim,#8a8f98)}
+.doc b{color:var(--txt,#d7d7db)}
+.doc a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div id="bg"><div class="grid"></div><div class="glow g1"></div></div>
+<main class="doc">
+  <p><a href="../">← polonium</a></p>
+  <h1>prywatność</h1>
+  <h2>1. jakie dane zbieramy</h2>
+  <ul>
+    <li><b>Ticket zakupowy:</b> nick, kontakt (discord / e-mail), treść wiadomości.</li>
+    <li><b>Licencja:</b> klucz, identyfikator instalacji (HWID), czas ostatniego użycia.</li>
+    <li><b>Techniczne:</b> anonimowy heartbeat gry (nick, wersja), logi prób logowania.</li>
+  </ul>
+  <h2>2. po co i gdzie</h2>
+  <p>Dane służą wyłącznie realizacji usługi (wydanie i weryfikacja licencji, kontakt w sprawie ticketa). Hosting: Supabase (UE). Dane nie są sprzedawane ani udostępniane osobom trzecim.</p>
+  <h2>3. logowanie Microsoft</h2>
+  <p>Logowanie panelem admina przez Microsoft (Entra ID) służy wyłącznie uwierzytelnieniu administratora. Nie przechowujemy haseł Microsoft — uwierzytelnia je Microsoft.</p>
+  <h2>4. cookies</h2>
+  <ul>
+    <li>Panel admina: ciasteczka sesji (<b>pl_at / pl_rt</b>, HttpOnly) + flaga <b>pl_logged</b>.</li>
+    <li>Strona: anonimowy identyfikator karty do licznika online (sessionStorage).</li>
+  </ul>
+  <h2>5. twoje prawa</h2>
+  <p>Dostęp, poprawa i usunięcie danych — przez kontakt z ticketa lub Discord admina. Usunięcie klucza = koniec usługi.</p>
+  <h2>6. retencja</h2>
+  <p>Tickety i logi trzymamy do 12 miesięcy, dane licencji przez czas jej ważności + 6 miesięcy.</p>
+</main>
+</body>
+</html>
