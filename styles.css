@@ -242,5 +242,5 @@ footer a:hover{color:var(--acc)}
 #chat-input input{flex:1;background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:7px;color:var(--txt,#d7d7db);padding:8px 9px;font:13px "Space Grotesk",sans-serif;outline:none;min-width:0}
 #chat-input button{background:var(--acc);border:0;border-radius:7px;color:#10130a;font-weight:700;padding:0 16px;cursor:pointer}
 .chat-head span:last-child{display:flex;gap:6px}
-#chat-new{background:transparent;border:1px solid var(--line,#242a31);border-radius:6px;color:var(--dim,#8a8f98);cursor:pointer;font:700 10px "JetBrains Mono",monospace;padding:3px 10px;text-transform:uppercase;letter-spacing:1px}
-#chat-new:hover{color:var(--acc);border-color:var(--acc)}
+#chat-new,#chat-end{background:transparent;border:1px solid var(--line,#242a31);border-radius:6px;color:var(--dim,#8a8f98);cursor:pointer;font:700 10px "JetBrains Mono",monospace;padding:3px 10px;text-transform:uppercase;letter-spacing:1px}
+#chat-new:hover,#chat-end:hover{color:var(--acc);border-color:var(--acc)}

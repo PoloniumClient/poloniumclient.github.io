@@ -172,6 +172,16 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
   fab.onclick = () => panel.classList.contains('hidden') ? open() : close();
   document.getElementById('chat-x').onclick = close;
   document.getElementById('chat-new').onclick = () => { resetChat(''); open(); };
+  document.getElementById('chat-end').onclick = async () => {
+    if (!ticketId || !confirm('Na pewno zamknąć ticket?')) return;
+    try {
+      await fetch(CHAT_API + '/close', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId })
+      });
+    } catch {}
+    resetChat('Ticket zamknięty. Dzięki!');
+  };
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   document.querySelectorAll('.chat-days button').forEach(b => b.onclick = () => {
     document.querySelectorAll('.chat-days button').forEach(x => x.classList.remove('active'));
