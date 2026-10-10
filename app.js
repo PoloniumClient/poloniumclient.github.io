@@ -146,9 +146,9 @@ if (SUPABASE && window.supabase) {
 }
 
 // ---------- BUY LICENSE → CHAT (Edge Function ticket-chat, id = sekret) ----------
-// Cennik lustrzany z funkcją: 4zł/dzień, lifetime 99zł. Zmień w obu miejscach.
+// Cennik lustrzany z funkcją: 1zł/dzień, cap 30zł (30D flat), lifetime 99zł.
 const CHAT_API = 'https://jofzsdbebwbjbsitetli.supabase.co/functions/v1/ticket-chat';
-const PRICE_DAY = 4, PRICE_LIFE = 99;
+const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
 (function chat() {
   const fab = document.getElementById('chat-fab');
   const panel = document.getElementById('chat-panel');
@@ -161,7 +161,11 @@ const PRICE_DAY = 4, PRICE_LIFE = 99;
   let ticketId = null;
   try { ticketId = (JSON.parse(localStorage.getItem('polonium-ticket') || 'null') || {}).id || null; } catch {}
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const price = () => (days === 'lifetime' ? PRICE_LIFE : Math.max(1, Math.min(365, days | 0)) * PRICE_DAY);
+  const price = () => {
+    if (days === 'lifetime') return PRICE_LIFE;
+    const n = Math.max(1, Math.min(MAX_DAYS, days | 0));
+    return n >= 30 ? PRICE_MONTH : Math.min(n * PRICE_DAY, PRICE_MONTH);
+  };
   const open = () => panel.classList.remove('hidden');
   const close = () => panel.classList.add('hidden');
   document.querySelectorAll('.buy-open').forEach(b => b.onclick = open);
@@ -179,7 +183,7 @@ const PRICE_DAY = 4, PRICE_LIFE = 99;
   document.getElementById('chat-days').oninput = (e) => {
     const n = parseInt(e.target.value, 10);
     if (Number.isFinite(n) && n >= 1) {
-      days = Math.min(365, n);
+      days = Math.min(MAX_DAYS, n);
       document.querySelectorAll('.chat-days button').forEach(x => x.classList.remove('active'));
       priceEl.textContent = price() + ' zł';
     }

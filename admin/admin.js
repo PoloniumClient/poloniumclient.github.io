@@ -165,8 +165,14 @@ async function loadTickets() {
           `<small class="dim">${new Date(m.created_at).toLocaleString('pl-PL')}</small></div>`
         ).join('') +
         (t.status === 'open'
-          ? `<div class="arow"><input placeholder="odpowiedź..." data-r="${esc(t.id)}"><button class="abtn ghost breply">wyślij</button></div>`
-          : '');
+          ? `<div class="qfill">
+               <button class="abtn ghost qf" data-t="Płatność zaksięgowana ✅ Klucz generuję poniżej.">płatność ✓</button>
+               <button class="abtn ghost qf" data-t="Dziękujemy za zakup! Opłać na Tipply (tytuł = id ticketa, nick zgodny z nickiem) i daj znać tutaj.">dzięki</button>
+               <button class="abtn ghost qf" data-t="Podaj nick z Tipply — musi zgadzać się z nickiem z ticketa, inaczej nie znajdę wpłaty.">nick?</button>
+               <button class="abtn ghost qgen">🎲 key</button>
+             </div>
+             <div class="arow"><input placeholder="odpowiedź..." data-r="${esc(t.id)}"><button class="abtn ghost breply">wyślij</button></div>`
+          : `<div class="ops"><button class="abtn ghost breopen">otwórz ponownie</button></div>`);
         const inp = box.querySelector('input[data-r]');
         const btn = box.querySelector('.breply');
         if (inp && btn) btn.onclick = async () => {
@@ -174,6 +180,24 @@ async function loadTickets() {
           if (!text) return;
           await api('tickets.reply', { id: t.id, text });
           showMsgs();
+        };
+        box.querySelectorAll('.qf').forEach(qb => qb.onclick = () => {
+          const i2 = box.querySelector('input[data-r]');
+          if (i2) { i2.value = qb.dataset.t; i2.focus(); }
+        });
+        const qg = box.querySelector('.qgen');
+        if (qg) qg.onclick = async () => {
+          try {
+            const r = await api('licenses.create', { label: (t.nick + ' • ' + (t.plan || '')).slice(0, 32) });
+            const i2 = box.querySelector('input[data-r]');
+            if (i2) { i2.value = 'Twój klucz: ' + r.key + ' — wpisz go w launcherze w zakładce Licencja.'; i2.focus(); }
+            loadLicenses();
+          } catch (e) { /* ignore */ }
+        };
+        const ro = box.querySelector('.breopen');
+        if (ro) ro.onclick = async () => {
+          await api('tickets.reopen', { id: t.id });
+          loadTickets();
         };
       } catch (e) {
         box.innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 80));

@@ -39,3 +39,6 @@
 #a-ms{width:100%;margin-top:8px;background:#1f1f22;color:#fff;border:1px solid var(--line2,#2f3740)}
 #a-ms:hover{border-color:var(--acc);color:var(--acc)}
 #adm-msg{font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98)}
+.qfill{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.qfill .abtn{font-size:11px;padding:5px 10px}
+.amsgs{margin-top:8px}
