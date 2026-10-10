@@ -196,6 +196,15 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
     msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
   }
+  function resetChat(msg) {
+    ticketId = null;
+    try { localStorage.removeItem('polonium-ticket'); } catch {}
+    form.classList.remove('hidden');
+    document.getElementById('chat-plan').style.display = '';
+    inputRow.classList.add('hidden');
+    msgs.innerHTML = '';
+    if (msg) bubble('auto', msg);
+  }
   async function poll() {
     if (!ticketId || panel.classList.contains('hidden')) return;
     try {
@@ -204,6 +213,7 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
         body: JSON.stringify({ ticket_id: ticketId })
       });
       const j = await r.json();
+      if (r.status === 404) { resetChat('ticket nie istnieje — zacznij od nowa'); return; }
       if (!r.ok) return;
       const have = msgs.querySelectorAll('.msg').length;
       if ((j.messages || []).length !== have) {
@@ -226,28 +236,39 @@ const PRICE_DAY = 1, PRICE_MONTH = 30, PRICE_LIFE = 99, MAX_DAYS = 30;
       ticketId = j.id;
       try { localStorage.setItem('polonium-ticket', JSON.stringify({ id: ticketId })); } catch {}
       form.classList.add('hidden');
+      document.getElementById('chat-plan').style.display = 'none';
       inputRow.classList.remove('hidden');
       poll();
     } catch (e) {
       bubble('auto', 'błąd: ' + String(e.message || e).slice(0, 120));
     }
   };
+  let sendBusy = false;
   async function send() {
+    if (sendBusy) return;
     const inp = document.getElementById('chat-text');
     const text = inp.value.trim().slice(0, 1000);
     if (!text || !ticketId) return;
+    sendBusy = true;
     inp.value = '';
     try {
-      await fetch(CHAT_API + '/send', {
+      const r = await fetch(CHAT_API + '/send', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticket_id: ticketId, text })
       });
+      const j = await r.json();
+      sendBusy = false;
+      if (r.status === 404 || r.status === 403) { resetChat('ticket nieaktywny — zacznij od nowa'); return; }
+      if (!r.ok) { bubble('auto', 'błąd wysyłki: ' + ((j && j.error) || r.status)); return; }
       poll();
-    } catch {}
+    } catch {
+      sendBusy = false;
+      bubble('auto', 'błąd sieci — spróbuj ponownie');
+    }
   }
   document.getElementById('chat-send').onclick = send;
   document.getElementById('chat-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
-  if (ticketId) { form.classList.add('hidden'); inputRow.classList.remove('hidden'); poll(); }
+  if (ticketId) { form.classList.add('hidden'); document.getElementById('chat-plan').style.display = 'none'; inputRow.classList.remove('hidden'); poll(); }
   setInterval(poll, 5000);
 })();
 
