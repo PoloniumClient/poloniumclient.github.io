@@ -28,7 +28,7 @@ const MODS = [
   { n: 'armor-hud', c: 'hud', d: 'stan zbroi i wytrzymałość' },
   { n: 'arraylist', c: 'hud', d: 'lista włączonych modułów' },
 ];
-const VERSIONS = ['26.2','26.1.2','26.1.1','26.1','1.21.11','1.21.10','1.21.9','1.21.8','1.21.7','1.21.6','1.21.5','1.21.4','1.21.3','1.21.2','1.21.1','1.21','1.20.6','1.20.5','1.20.4','1.20.3','1.20.2','1.20.1','1.20','1.19.4','1.19.3','1.19.2','1.19.1','1.19','1.18.2','1.18.1','1.18','1.17.1','1.17','1.16.5','1.16.4','1.16.3','1.16.2','1.16.1','1.16','1.15.2','1.15.1','1.15','1.14.4','1.14.3','1.14.2','1.14.1','1.14','1.13.2','1.13.1','1.13','1.12.2','1.12.1','1.12','1.11.2','1.11.1','1.11','1.10.2','1.10.1','1.10','1.9.4','1.9.3','1.9.2','1.9.1','1.9','1.8.9','1.8.8','1.8.7','1.8.6','1.8.5','1.8.4','1.8.3','1.8.2','1.8.1','1.8'];
+const VERSIONS = ['1.21.11'];
 
 // Grupowanie w glowne linie: 1.8.x, 1.9.x ... 1.21.x, 26.x
 function majorOf(v) {
@@ -66,7 +66,7 @@ document.querySelectorAll('.filter button').forEach(b => b.onclick = () => {
 document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.seg button').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
-  document.getElementById('play-sub').textContent = b.textContent.includes('Obviously') ? 'cheats on • 1.21' : 'vanilla • 1.21';
+  document.getElementById('play-sub').textContent = b.textContent.includes('Obviously') ? 'cheats on • 1.21.11' : 'vanilla • 1.21.11';
 });
 
 // os tabs
@@ -116,9 +116,9 @@ document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 //   create table if not exists presence (id text primary key, seen timestamptz default now());
 //   alter table presence enable row level security;
 //   create policy "open" on presence for all to anon using (true) with check (true);
-// Klucz anon: Project Settings → API → anon public (ten klucz JEST publiczny z natury,
-// nigdy nie wklejaj tu service_role ani hasła do bazy).
-const SUPABASE = { url: 'https://anecgwskrxgedvkablwz.supabase.co', anon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuZWNnd3NrcnhnZWR2a2FibHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMjU0ODMsImV4cCI6MjEwNDcwMTQ4M30._EABejpum6WMFergeTnIt1gcYTaI9FHllaGxXwSV3y8' };
+// Projekt unifikowany z launcherem (licencje, tickety, live, admin).
+// Klucz anon JEST publiczny z natury, nigdy nie wklejaj tu service_role ani hasła do bazy.
+const SUPABASE = { url: 'https://jofzsdbebwbjbsitetli.supabase.co', anon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZnpzZGJlYndiamJzaXRldGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1ODkxMTgsImV4cCI6MjEwNzE2NTExOH0.OrfEkY_SWHfl1TaJZAyKxDrzICch-L48ft8o1LfNyws' };
 
 const __liveEls = [document.getElementById('live-big')].filter(Boolean);
 function paintLive(n) {
@@ -144,6 +144,47 @@ if (SUPABASE && window.supabase) {
 } else {
   paintLive('—'); // brak configu = pauza, zero ściemy
 }
+
+// ---------- BUY LICENSE → TICKET (Supabase tickets, anon insert) ----------
+(function ticket() {
+  const modal = document.getElementById('ticket-modal');
+  if (!modal || !window.supabase) return;
+  const sb = window.supabase.createClient(SUPABASE.url, SUPABASE.anon);
+  const status = document.getElementById('ticket-status');
+  const open = () => { modal.classList.remove('hidden'); status.textContent = ''; };
+  const close = () => modal.classList.add('hidden');
+  document.querySelectorAll('.buy-open').forEach(b => b.onclick = open);
+  const cb = document.getElementById('ticket-close');
+  if (cb) cb.onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  let busy = false, lastSend = 0;
+  document.getElementById('ticket-send').onclick = async () => {
+    if (busy) return;
+    if (Date.now() - lastSend < 15000) { status.textContent = 'zwolnij (15s)'; return; } // anty-spam
+    const nick = document.getElementById('t-nick').value.trim().slice(0, 24);
+    const contact = document.getElementById('t-contact').value.trim().slice(0, 64);
+    const plan = document.getElementById('t-plan').value;
+    const message = document.getElementById('t-msg').value.trim().slice(0, 500);
+    if (!nick || !contact) { status.textContent = 'uzupełnij nick i kontakt'; return; }
+    busy = true; lastSend = Date.now();
+    status.textContent = 'wysyłam...';
+    try {
+      // id generujemy po stronie klienta (anon nie ma prawa odczytu ticketa z powrotem)
+      const tid = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      }));
+      const { error } = await sb.from('tickets').insert({ id: tid, nick, contact, plan, message });
+      if (error) throw error;
+      status.textContent = 'ticket przyjęty #' + tid.slice(0, 8) + ' — admin odezwie się na podany kontakt';
+      document.getElementById('t-msg').value = '';
+    } catch (e) {
+      status.textContent = 'błąd: ' + (e.message || e).slice(0, 100);
+    }
+    busy = false;
+  };
+})();
 
 // dvd screensaver
 (function dvd() {

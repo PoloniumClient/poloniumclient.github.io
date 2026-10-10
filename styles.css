@@ -210,3 +210,21 @@ footer a:hover{color:var(--acc)}
 @media(max-width:860px){.hero-grid{grid-template-columns:1fr}.win{transform:none}.cards,.cards3,.stats{grid-template-columns:1fr 1fr}.dl-grid{grid-template-columns:1fr}.faq-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.cards,.cards3,.stats{grid-template-columns:1fr}.top nav{display:none}h1{font-size:52px}.dl{padding:28px 20px}.hero{padding-top:64px}}
 @media(prefers-reduced-motion:reduce){.track,#bg .cubes i,#bg .g1,.pulse{animation:none}.reveal{opacity:1;transform:none;transition:none}}
+/* buy license + ticket modal */
+.hidden{display:none !important}
+.nav-buy{background:var(--acc);border:0;border-radius:9px;color:#10130a;font:700 12px "Space Grotesk",sans-serif;letter-spacing:1px;text-transform:uppercase;padding:9px 16px;cursor:pointer;margin-right:8px}
+.nav-buy:hover{filter:brightness(.92)}
+.btn.buy{display:inline-block;margin:12px 0 4px;background:var(--acc);color:#10130a}
+#ticket-modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:60;backdrop-filter:blur(4px);padding:16px}
+.ticket-card{width:400px;max-width:100%;background:var(--panel,#15181c);border:1px solid var(--line2,#2f3740);border-radius:16px;overflow:hidden;box-shadow:0 28px 70px #000}
+.ticket-card .winbar{display:flex;align-items:center;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line,#242a31)}
+.ticket-card .winbar i{width:10px;height:10px;border-radius:50%;background:var(--line2,#2f3740)}
+.ticket-card .winbar span{flex:1;font:700 11px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim,#8a8f98)}
+#ticket-close{background:transparent;border:1px solid var(--line,#242a31);border-radius:7px;color:var(--dim,#8a8f98);cursor:pointer;width:26px;height:26px;font-size:13px}
+#ticket-close:hover{color:var(--acc);border-color:var(--acc)}
+.ticket-body{padding:14px;display:flex;flex-direction:column;gap:10px}
+.ticket-body label{display:flex;flex-direction:column;gap:5px;font:700 10px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:1px;color:var(--dim,#8a8f98)}
+.ticket-body input,.ticket-body select,.ticket-body textarea{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:9px;color:var(--txt,#d7d7db);padding:9px 10px;font:13px "Space Grotesk",sans-serif;outline:none;resize:vertical}
+.ticket-body input:focus,.ticket-body select:focus,.ticket-body textarea:focus{border-color:var(--acc)}
+#ticket-send{width:100%;text-align:center}
+#ticket-status{font:12px "JetBrains Mono",monospace;color:var(--acc);min-height:18px;margin:0}

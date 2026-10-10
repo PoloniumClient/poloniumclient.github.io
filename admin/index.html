@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polonium — admin</title>
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="bg"><div class="grid"></div><div class="glow g1"></div></div>
+<main class="admin-wrap">
+  <section id="login-view" class="acard">
+    <div class="ahead">polonium · admin</div>
+    <label>e-mail<input id="a-email" type="email" autocomplete="username"></label>
+    <label>hasło<input id="a-pass" type="password" autocomplete="current-password"></label>
+    <button id="a-login" class="abtn">zaloguj</button>
+    <p id="a-err"></p>
+  </section>
+  <section id="panel-view" class="hidden">
+    <header class="ahead row"><span>polonium · admin</span><button id="a-logout">wyloguj</button></header>
+    <nav class="atabs">
+      <button data-t="tickets" class="active">tickety <b id="c-tickets"></b></button>
+      <button data-t="licenses">licencje</button>
+      <button data-t="kill">kill-switch</button>
+      <button data-t="updates">update</button>
+      <button data-t="attempts">próby</button>
+      <button data-t="downloads">pobrania</button>
+    </nav>
+    <div class="atab active" id="tab-tickets"><div id="ticket-list"></div></div>
+    <div class="atab" id="tab-licenses">
+      <div class="arow"><input id="lic-label" placeholder="label np. vip" autocomplete="off"><button id="lic-gen" class="abtn">generuj klucz</button></div>
+      <div id="lic-new"></div>
+      <div id="lic-list"></div>
+    </div>
+    <div class="atab" id="tab-kill"><div id="kill-box"></div></div>
+    <div class="atab" id="tab-updates">
+      <div class="arow col">
+        <input id="up-ver" placeholder="wersja np. 0.4.37" autocomplete="off">
+        <input id="up-url" placeholder="url do exe" autocomplete="off">
+        <textarea id="up-log" rows="2" placeholder="changelog"></textarea>
+        <button id="up-add" class="abtn">dodaj update</button>
+      </div>
+      <div id="up-list"></div>
+    </div>
+    <div class="atab" id="tab-attempts"><div id="att-list"></div></div>
+    <div class="atab" id="tab-downloads"><div id="dl-list"></div></div>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+</body>
+</html>
