@@ -77,12 +77,12 @@ $('a-ms').onclick = () => {
   const st = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join('');
   try { sessionStorage.setItem('ms_state', st); } catch {}
   const u = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
-  u.search.set('client_id', MS_CLIENT_ID);
-  u.search.set('response_type', 'code');
-  u.search.set('redirect_uri', MS_REDIRECT);
-  u.search.set('scope', 'openid profile email');
-  u.search.set('state', st);
-  u.search.set('response_mode', 'query');
+  u.searchParams.set('client_id', MS_CLIENT_ID);
+  u.searchParams.set('response_type', 'code');
+  u.searchParams.set('redirect_uri', MS_REDIRECT);
+  u.searchParams.set('scope', 'openid profile email');
+  u.searchParams.set('state', st);
+  u.searchParams.set('response_mode', 'query');
   location.href = u.toString();
 };
 async function msCallback() {
