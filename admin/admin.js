@@ -83,6 +83,7 @@ $('a-ms').onclick = () => {
   u.searchParams.set('scope', 'openid profile email User.Read');
   u.searchParams.set('state', st);
   u.searchParams.set('response_mode', 'query');
+  u.searchParams.set('prompt', 'consent');
   location.href = u.toString();
 };
 async function msCallback() {
