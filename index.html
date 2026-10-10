@@ -175,20 +175,26 @@
   <div class="foot-links"><a href="#cheaty">cheaty</a><a href="#mody">mody</a><a href="#wersje">wersje</a><a href="#faq">faq</a></div>
   <div class="foot-side"><span id="year"></span><a href="https://github.com/poloniumclient/poloniumclient.github.io">github →</a></div>
 </footer>
-<div id="ticket-modal" class="hidden">
-  <div class="ticket-card">
-    <div class="winbar"><i></i><i></i><i></i><span>ticket — buy license</span><button id="ticket-close">x</button></div>
-    <div class="ticket-body">
-      <label>nick<input id="t-nick" maxlength="24" placeholder="twój nick" autocomplete="off"></label>
-      <label>kontakt (discord / e-mail)<input id="t-contact" maxlength="64" placeholder="np. nick#1234" autocomplete="off"></label>
-      <label>plan<select id="t-plan"><option value="30d">standard · 30 dni</option><option value="lifetime">lifetime</option><option value="other">inny (opisz niżej)</option></select></label>
-      <label>wiadomość<textarea id="t-msg" rows="3" maxlength="500" placeholder="co chcesz kupić / pytania"></textarea></label>
-      <button id="ticket-send" class="btn big">wyślij ticket</button>
-      <p id="ticket-status"></p>
-      <p class="dim">ceny potwierdza admin na tickecie. bez spamu — 1 ticket na zakup.</p>
+<button id="chat-fab" class="buy-open">kup licencję</button>
+<section id="chat-panel" class="hidden">
+  <div class="chat-head"><span>polonium · ticket</span><button id="chat-x">x</button></div>
+  <div id="chat-plan">
+    <div class="chat-days">
+      <button data-days="1" class="active">1D · 4zł</button>
+      <button data-days="7">7D · 28zł</button>
+      <button data-days="30">30D · 120zł</button>
+      <button data-days="lifetime">LIFE · 99zł</button>
     </div>
+    <div class="chat-custom"><input id="chat-days" type="number" min="1" max="365" placeholder="własna liczba dni"><span id="chat-price">4 zł</span></div>
   </div>
-</div>
+  <div id="chat-form">
+    <input id="chat-nick" maxlength="24" placeholder="nick (musi zgadzać się z Tipply)" autocomplete="off">
+    <input id="chat-contact" maxlength="64" placeholder="kontakt: discord / e-mail" autocomplete="off">
+    <button id="chat-start" class="btn big">start</button>
+  </div>
+  <div id="chat-msgs"></div>
+  <div id="chat-input" class="hidden"><input id="chat-text" maxlength="1000" placeholder="wiadomość..."><button id="chat-send">➤</button></div>
+</section>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>

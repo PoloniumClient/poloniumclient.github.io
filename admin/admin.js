@@ -152,13 +152,41 @@ async function loadTickets() {
       `<small>plan: ${esc(t.plan)} · ${new Date(t.created_at).toLocaleString('pl-PL')}</small>` +
       (t.message ? `<small>msg: ${esc(t.message)}</small>` : '') +
       `<small class="dim">#${esc(t.id.slice(0, 8))}</small>` +
-      (t.status === 'open' ? `<div class="ops"><button class="abtn ghost">zamknij</button></div>` : '');
-    if (t.status === 'open') {
-      d.querySelector('button').onclick = async () => {
-        await api('tickets.close', { id: t.id });
-        loadTickets();
-      };
+      `<div class="amsgs" id="msgs-${esc(t.id)}"></div>` +
+      `<div class="ops"><button class="abtn ghost bchat">chat</button>` +
+      (t.status === 'open' ? `<button class="abtn ghost bclose">zamknij</button>` : '') + `</div>`;
+    const [bchat, bclose] = d.querySelectorAll('button');
+    const box = d.querySelector('.amsgs');
+    async function showMsgs() {
+      try {
+        const msgs = await api('tickets.messages', { id: t.id });
+        box.innerHTML = (msgs || []).map(m =>
+          `<div class="arow2"><b>${esc(m.sender)}</b><small>${esc(m.text)}</small>` +
+          `<small class="dim">${new Date(m.created_at).toLocaleString('pl-PL')}</small></div>`
+        ).join('') +
+        (t.status === 'open'
+          ? `<div class="arow"><input placeholder="odpowiedź..." data-r="${esc(t.id)}"><button class="abtn ghost breply">wyślij</button></div>`
+          : '');
+        const inp = box.querySelector('input[data-r]');
+        const btn = box.querySelector('.breply');
+        if (inp && btn) btn.onclick = async () => {
+          const text = inp.value.trim();
+          if (!text) return;
+          await api('tickets.reply', { id: t.id, text });
+          showMsgs();
+        };
+      } catch (e) {
+        box.innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 80));
+      }
     }
+    bchat.onclick = () => {
+      if (box.dataset.open) { box.innerHTML = ''; delete box.dataset.open; }
+      else { box.dataset.open = '1'; showMsgs(); }
+    };
+    if (bclose) bclose.onclick = async () => {
+      await api('tickets.close', { id: t.id });
+      loadTickets();
+    };
     box.appendChild(d);
   });
 }

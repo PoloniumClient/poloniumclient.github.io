@@ -145,45 +145,106 @@ if (SUPABASE && window.supabase) {
   paintLive('—'); // brak configu = pauza, zero ściemy
 }
 
-// ---------- BUY LICENSE → TICKET (Supabase tickets, anon insert) ----------
-(function ticket() {
-  const modal = document.getElementById('ticket-modal');
-  if (!modal || !window.supabase) return;
-  const sb = window.supabase.createClient(SUPABASE.url, SUPABASE.anon);
-  const status = document.getElementById('ticket-status');
-  const open = () => { modal.classList.remove('hidden'); status.textContent = ''; };
-  const close = () => modal.classList.add('hidden');
+// ---------- BUY LICENSE → CHAT (Edge Function ticket-chat, id = sekret) ----------
+// Cennik lustrzany z funkcją: 4zł/dzień, lifetime 99zł. Zmień w obu miejscach.
+const CHAT_API = 'https://jofzsdbebwbjbsitetli.supabase.co/functions/v1/ticket-chat';
+const PRICE_DAY = 4, PRICE_LIFE = 99;
+(function chat() {
+  const fab = document.getElementById('chat-fab');
+  const panel = document.getElementById('chat-panel');
+  if (!fab || !panel) return;
+  const msgs = document.getElementById('chat-msgs');
+  const inputRow = document.getElementById('chat-input');
+  const form = document.getElementById('chat-form');
+  const priceEl = document.getElementById('chat-price');
+  let days = 1;
+  let ticketId = null;
+  try { ticketId = (JSON.parse(localStorage.getItem('polonium-ticket') || 'null') || {}).id || null; } catch {}
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const price = () => (days === 'lifetime' ? PRICE_LIFE : Math.max(1, Math.min(365, days | 0)) * PRICE_DAY);
+  const open = () => panel.classList.remove('hidden');
+  const close = () => panel.classList.add('hidden');
   document.querySelectorAll('.buy-open').forEach(b => b.onclick = open);
-  const cb = document.getElementById('ticket-close');
-  if (cb) cb.onclick = close;
-  modal.onclick = (e) => { if (e.target === modal) close(); };
+  fab.onclick = () => panel.classList.contains('hidden') ? open() : close();
+  document.getElementById('chat-x').onclick = close;
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-  let busy = false, lastSend = 0;
-  document.getElementById('ticket-send').onclick = async () => {
-    if (busy) return;
-    if (Date.now() - lastSend < 15000) { status.textContent = 'zwolnij (15s)'; return; } // anty-spam
-    const nick = document.getElementById('t-nick').value.trim().slice(0, 24);
-    const contact = document.getElementById('t-contact').value.trim().slice(0, 64);
-    const plan = document.getElementById('t-plan').value;
-    const message = document.getElementById('t-msg').value.trim().slice(0, 500);
-    if (!nick || !contact) { status.textContent = 'uzupełnij nick i kontakt'; return; }
-    busy = true; lastSend = Date.now();
-    status.textContent = 'wysyłam...';
-    try {
-      // id generujemy po stronie klienta (anon nie ma prawa odczytu ticketa z powrotem)
-      const tid = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = Math.random() * 16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-      }));
-      const { error } = await sb.from('tickets').insert({ id: tid, nick, contact, plan, message });
-      if (error) throw error;
-      status.textContent = 'ticket przyjęty #' + tid.slice(0, 8) + ' — admin odezwie się na podany kontakt';
-      document.getElementById('t-msg').value = '';
-    } catch (e) {
-      status.textContent = 'błąd: ' + (e.message || e).slice(0, 100);
+  document.querySelectorAll('.chat-days button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.chat-days button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const d = b.dataset.days;
+    days = d === 'lifetime' ? 'lifetime' : parseInt(d, 10);
+    document.getElementById('chat-days').value = '';
+    priceEl.textContent = price() + ' zł';
+  });
+  document.getElementById('chat-days').oninput = (e) => {
+    const n = parseInt(e.target.value, 10);
+    if (Number.isFinite(n) && n >= 1) {
+      days = Math.min(365, n);
+      document.querySelectorAll('.chat-days button').forEach(x => x.classList.remove('active'));
+      priceEl.textContent = price() + ' zł';
     }
-    busy = false;
   };
+  function bubble(who, text, ts) {
+    const d = document.createElement('div');
+    d.className = 'msg m-' + who;
+    const t = ts ? new Date(ts).toLocaleString('pl-PL') : '';
+    d.innerHTML = `<small>${esc(who === 'user' ? 'ty' : who)} · ${esc(t)}</small><p>${esc(text)}</p>`;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  async function poll() {
+    if (!ticketId || panel.classList.contains('hidden')) return;
+    try {
+      const r = await fetch(CHAT_API + '/poll', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId })
+      });
+      const j = await r.json();
+      if (!r.ok) return;
+      const have = msgs.querySelectorAll('.msg').length;
+      if ((j.messages || []).length !== have) {
+        msgs.innerHTML = '';
+        (j.messages || []).forEach(m => bubble(m.sender, m.text, m.created_at));
+      }
+    } catch {}
+  }
+  document.getElementById('chat-start').onclick = async () => {
+    const nick = document.getElementById('chat-nick').value.trim().slice(0, 24);
+    const contact = document.getElementById('chat-contact').value.trim().slice(0, 64);
+    if (!nick || !contact) { bubble('auto', 'uzupełnij nick i kontakt'); return; }
+    try {
+      const r = await fetch(CHAT_API + '/create', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nick, contact, days })
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'błąd');
+      ticketId = j.id;
+      try { localStorage.setItem('polonium-ticket', JSON.stringify({ id: ticketId })); } catch {}
+      form.classList.add('hidden');
+      inputRow.classList.remove('hidden');
+      poll();
+    } catch (e) {
+      bubble('auto', 'błąd: ' + String(e.message || e).slice(0, 120));
+    }
+  };
+  async function send() {
+    const inp = document.getElementById('chat-text');
+    const text = inp.value.trim().slice(0, 1000);
+    if (!text || !ticketId) return;
+    inp.value = '';
+    try {
+      await fetch(CHAT_API + '/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId, text })
+      });
+      poll();
+    } catch {}
+  }
+  document.getElementById('chat-send').onclick = send;
+  document.getElementById('chat-text').addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+  if (ticketId) { form.classList.add('hidden'); inputRow.classList.remove('hidden'); poll(); }
+  setInterval(poll, 5000);
 })();
 
 // dvd screensaver
