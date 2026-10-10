@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>polonium — inbox bug-reportów (admin demo)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0a14; --panel:#161428; --panel2:#100e1e;
+  --line:#2c2a4a; --line2:#3d3a66;
+  --txt:#f2f0e9; --dim:#8b88b8; --faint:#55527d;
+  --blue:#5a3cff; --blue2:#9a6bff; --blue-dim:#241a7a;
+  --hazard:#ffd52e; --red:#e5484d; --green:#3ddc84;
+}
+body{background:var(--bg);color:var(--txt);font:13px/1.6 "JetBrains Mono",monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 16px 60px}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(115% 90% at 50% 30%,transparent 55%,#000000b0 100%)}
+.top-note{color:var(--dim);font-size:12px;margin-bottom:14px;text-align:center;max-width:900px}
+.top-note b{color:var(--hazard)}
+.win{width:min(960px,100%);background:var(--panel);border:2px solid var(--line2);box-shadow:10px 10px 0 #00000073,14px 14px 0 var(--blue-dim)}
+.win::before{content:'';display:block;height:5px;background:repeating-linear-gradient(45deg,var(--hazard) 0 10px,var(--bg) 10px 20px)}
+.winbar{display:flex;align-items:center;gap:7px;padding:10px 16px;border-bottom:2px solid var(--line2);background:var(--panel2);font-size:11px;color:var(--dim);flex-wrap:wrap}
+.winbar i{width:11px;height:11px;border:2px solid #000;background:var(--hazard)}
+.winbar i:first-child{background:var(--red)}
+.winbar .t{margin-left:8px;font-family:"Arial Black";font-size:13px;letter-spacing:1px}
+.winbar .admin{margin-left:auto;color:#fff;background:var(--red);border:2px solid #000;padding:2px 10px;font-size:10px;letter-spacing:1px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 0;align-items:center}
+.filters button{font:700 10px "JetBrains Mono";letter-spacing:1px;color:var(--faint);border:2px solid var(--line);background:transparent;padding:4px 10px;cursor:pointer;text-transform:uppercase;font-family:inherit}
+.filters button.on{color:#fff;border-color:#000;background:var(--blue)}
+.filters select{background:var(--panel2);border:2px solid var(--line2);color:var(--txt);font:inherit;font-size:11px;padding:4px 8px}
+.body{display:grid;grid-template-columns:1fr 1.2fr;min-height:440px}
+@media(max-width:720px){.body{grid-template-columns:1fr}}
+.list{border-right:2px solid var(--line2);padding:12px 14px;display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto}
+@media(max-width:720px){.list{border-right:none;max-height:300px}}
+.bug{background:var(--panel2);border:2px solid var(--line2);padding:9px 12px;cursor:pointer;animation:rowin .22s ease}
+@keyframes rowin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.bug:hover{filter:brightness(1.12)}
+.bug.on{border-color:#000;background:linear-gradient(180deg,var(--blue2),var(--blue))}
+.bug b{font-size:13px;display:block}
+.bug small{font-size:11px;color:var(--dim);display:block}
+.bug.on small{color:#fff}
+.bug .meta{display:flex;gap:8px;margin-top:4px;font-size:10px;align-items:center}
+.pill{font-size:9px;letter-spacing:1px;border:2px solid var(--line2);padding:1px 8px;color:var(--dim);text-transform:uppercase}
+.bug.on .pill{color:#fff;border-color:#fff}
+.pill.st-new{color:var(--hazard);border-color:var(--hazard)}
+.pill.st-accepted{color:var(--blue2);border-color:var(--blue2)}
+.pill.st-fixed{color:var(--green);border-color:var(--green)}
+.pill.st-rejected{color:var(--red);border-color:var(--red)}
+.bug .age{margin-left:auto;color:var(--faint)}
+.bug.queued{opacity:.55;border-style:dashed}
+.detail{padding:14px 16px}
+.detail h2{font-family:"Arial Black";font-size:16px;margin:4px 0}
+.detail .who{font-size:11px;color:var(--dim)}
+.detail .txt{background:#000;border:2px solid var(--line2);padding:10px 12px;font-size:12px;margin:10px 0;white-space:pre-wrap;min-height:110px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.actions button{font:900 11px "Arial Black";letter-spacing:1px;border:2px solid #000;padding:8px 16px;cursor:pointer}
+.a-acc{background:linear-gradient(180deg,var(--blue2),var(--blue));color:#fff}
+.a-fix{background:linear-gradient(180deg,#7dffab,var(--green));color:#06130c}
+.a-rej{background:linear-gradient(180deg,#ff7a7a,var(--red));color:#fff}
+.sim{margin-top:14px;border:2px dashed var(--line2);padding:10px 12px;font-size:11px;color:var(--dim)}
+.sim button{font:700 10px "JetBrains Mono";background:var(--panel2);border:2px solid var(--hazard);color:var(--hazard);padding:5px 12px;cursor:pointer;font-family:inherit;margin-top:6px}
+.sim button:disabled{filter:grayscale(1);cursor:wait}
+footer{margin-top:22px;color:var(--faint);font-size:11px;text-align:center}
+footer a{color:var(--blue2)}
+</style>
+</head>
+<body>
+<p class="top-note">DEMO inboxa admina — tak będziesz przeglądać bug-reporty. Dane mock (prawdziwe siedzą w <b>bug_reports_ready</b>, dashboard je pokazuje po 30s delay). Statusy klikalne, filtr działa.</p>
+<div class="win">
+  <div class="winbar"><i></i><i></i><i></i><span class="t">INBOX — BUG REPORTY</span><span class="admin">ADMIN</span></div>
+  <div class="filters" id="filters">
+    <button data-f="all" class="on">wszystkie</button><button data-f="new">nowe</button><button data-f="accepted">przyjęte</button><button data-f="fixed">naprawione</button><button data-f="rejected">odrzucone</button>
+    <select id="modf"><option value="">moduł: wszystkie</option></select>
+  </div>
+  <div class="body">
+    <div class="list" id="list"></div>
+    <div class="detail" id="detail"></div>
+  </div>
+</div>
+<footer>demo do <a href="./cheats.md">cheats.md → How It Looks</a> • <a href="./clickgui-preview.html">clickgui</a> • <a href="./launcher-preview.html">launcher</a></footer>
+<script>
+// mock w kształcie bug_reports_ready (id, nick, contact, module, title, text, status, created_at)
+let BUGS=[
+ {id:"a1",nick:"Kubson_2137",contact:"kubson#1234",module:"killaura",title:"BIJE PRZEZ ŚCIANĘ NA LOS ON",text:"los_check=ON a i tak bije przez 1 blok. seed: duel arena, ping 40.",status:"new",age:"2 min temu"},
+ {id:"a2",nick:"EnderQueen",contact:"eq@mail.pl",module:"scaffold",title:"tower stawia w powietrze",text:"tower Motion, ping 200+, postawił 3 bloki w powietrzu i desync.",status:"accepted",age:"1 h temu"},
+ {id:"a3",nick:"xX_Shadow_Xx",contact:"",module:"hud",title:"cps-hud liczy 2x",text:"przy 1 palcu pokazuje 24 zamiast 12. 1.21.11 stable.",status:"fixed",age:"wczoraj"},
+ {id:"a4",nick:"qwerty",contact:"q@dc.pl",module:"launcher",title:"GRAJ nic nie robi",text:"klikam graj i nic. bez klucza lol",status:"rejected",age:"2 dni temu"},
+];
+let fSt="all",fMod="",sel="a1";
+const list=document.getElementById("list"),detail=document.getElementById("detail");
+const mods=[...new Set(BUGS.map(b=>b.module))];
+document.getElementById("modf").innerHTML='<option value="">moduł: wszystkie</option>'+mods.map(m=>`<option>${m}</option>`).join("");
+document.querySelectorAll("#filters button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#filters button").forEach(x=>x.classList.remove("on"));b.classList.add("on");fSt=b.dataset.f;render();
+});
+document.getElementById("modf").onchange=e=>{fMod=e.target.value;render();};
+function pill(s){return `<span class="pill st-${s}">${s}</span>`;}
+function render(){
+  const L=BUGS.filter(b=>(fSt==="all"||b.status===fSt)&&(!fMod||b.module===fMod));
+  if(!L.some(b=>b.id===sel)&&L.length)sel=L[0].id;
+  list.innerHTML=L.length?L.map(b=>`<div class="bug ${b.id===sel?'on':''} ${b.status==='queued'?'queued':''}" data-id="${b.id}"><b>${b.title}</b><small>${b.nick} • ${b.module}</small><div class="meta">${pill(b.status)}<span class="age">${b.age}</span></div></div>`).join(""):'<div class="bug"><b>∅ pusto</b><small>zmień filtr</small></div>';
+  list.querySelectorAll(".bug[data-id]").forEach(el=>el.onclick=()=>{sel=el.dataset.id;render();});
+  const b=BUGS.find(x=>x.id===sel);
+  if(!b){detail.innerHTML="<p style='color:var(--faint)'>wybierz raport z listy.</p>";return;}
+  detail.innerHTML=`${pill(b.status)}<h2>${b.title}</h2><div class="who">od <b>${b.nick}</b> ${b.contact?`(${b.contact})`:""} • moduł ${b.module} • ${b.age}</div><div class="txt">${b.text}</div>
+  <div class="actions"><button class="a-acc" data-s="accepted">PRZYJMIJ</button><button class="a-fix" data-s="fixed">NAPRAWIONE ✓</button><button class="a-rej" data-s="rejected">ODRZUĆ</button></div>
+  <div class="sim">symulacja 30s delay: <b>SYMULUJ NOWY RAPORT</b> wpada jako <i>queued</i> i pokazuje się na liście dopiero po 30s (jak widok bug_reports_ready).<br><button id="simbtn">SYMULUJ NOWY RAPORT</button> <span id="simcd"></span></div>`;
+  detail.querySelectorAll(".actions button").forEach(x=>x.onclick=()=>{b.status=x.dataset.s;b.age="przed chwilą";render();});
+  const sb=document.getElementById("simbtn");
+  sb.onclick=()=>{
+    sb.disabled=true;let cd=30;const cdEl=document.getElementById("simcd");
+    const nb={id:"q"+Date.now(),nick:"tester",contact:"",module:"esp",title:"(świeży) esp miga na F1",text:"streamer-proof nie łapie F1 w tym buildzie.",status:"queued",age:"za "+cd+"s"};
+    BUGS.unshift(nb);render();
+    const h=setInterval(()=>{cd--;if(cd<=0){clearInterval(h);nb.status="new";nb.age="przed chwilą";render();return;}
+      nb.age="za "+cd+"s";const el=list.querySelector(`[data-id="${nb.id}"] .age`);if(el)el.textContent=nb.age;cdEl.textContent=`widoczny za ${cd}s`;},1000);
+  };
+}
+render();
+</script>
+</body>
+</html>

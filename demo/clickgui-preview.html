@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>polonium — clickgui preview (interaktywne demo MCEF)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0a14; --bg2:#11101f; --panel:#161428; --panel2:#100e1e;
+  --line:#2c2a4a; --line2:#3d3a66;
+  --txt:#f2f0e9; --dim:#8b88b8; --faint:#55527d;
+  --blue:#5a3cff; --blue2:#9a6bff; --blue-dim:#241a7a; --blue-glow:rgba(122,86,255,.5);
+  --hazard:#ffd52e; --red:#e5484d; --green:#3ddc84;
+  --glow-op:.5;
+}
+body[data-theme="midnight"]{--blue:#3b2fd6;--blue2:#6f6ff0;--blue-glow:rgba(111,111,240,.28);--glow-op:.3}
+body[data-theme="ghost"]{--blue:#4a4a6a;--blue2:#8b88b8;--blue-glow:rgba(139,136,184,.12);--glow-op:.1;--hazard:#8b88b8}
+body{background:var(--bg);color:var(--txt);font:13px/1.6 "JetBrains Mono",monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 16px 60px;transition:background .3s}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(115% 90% at 50% 30%,transparent 55%,#000000b0 100%)}
+h1,h2{font-family:"Arial Black",sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.top-note{color:var(--dim);font-size:12px;margin-bottom:14px;text-align:center;max-width:880px}
+.top-note b{color:var(--hazard)}
+.top-note kbd{background:var(--blue);border:2px solid #000;color:#fff;padding:1px 8px;font-size:10px}
+/* ===== splash ===== */
+#splash{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .35s}
+#splash.gone{opacity:0;pointer-events:none}
+#splash .logo{border:2px solid var(--blue2);padding:14px 30px;font-family:"Arial Black";font-size:30px;letter-spacing:6px;color:var(--blue2);box-shadow:0 0 30px var(--blue-glow);animation:bounce .8s ease}
+@keyframes bounce{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+#splash small{color:var(--dim);font-size:11px}
+/* ===== okno ===== */
+.win{width:min(880px,100%);background:var(--panel);border:2px solid var(--line2);box-shadow:10px 10px 0 #00000073,14px 14px 0 var(--blue-dim);position:relative;transition:transform .18s ease,opacity .18s ease;transform-origin:top center}
+.win.hidden-gui{transform:scale(.96) translateY(8px);opacity:0;pointer-events:none;height:0;overflow:hidden;border:none;margin:0}
+.win.flash{animation:panicflash .5s}
+@keyframes panicflash{0%,100%{box-shadow:10px 10px 0 #00000073,14px 14px 0 var(--blue-dim)}50%{box-shadow:0 0 0 4px var(--red),10px 10px 0 #00000073}}
+.win::before{content:'';display:block;height:5px;background:repeating-linear-gradient(45deg,var(--hazard) 0 10px,var(--bg) 10px 20px)}
+.winbar{display:flex;align-items:center;gap:7px;padding:10px 16px;border-bottom:2px solid var(--line2);background:var(--panel2);font-size:11px;color:var(--dim);flex-wrap:wrap}
+.winbar i.dot{width:11px;height:11px;border:2px solid #000;background:var(--hazard)}
+.winbar i.dot:first-child{background:var(--red)}
+.winbar .title{margin-left:8px}
+.winbar .kbd{margin-left:auto;color:#fff;background:var(--blue);border:2px solid #000;padding:2px 10px;font-size:10px;letter-spacing:1px}
+.search{background:var(--bg);border:2px solid var(--line2);color:var(--txt);font:inherit;font-size:11px;padding:5px 10px;width:200px;outline:none}
+.search:focus{border-color:var(--blue2)}
+.presence{font-size:11px;color:var(--dim);border:2px solid var(--line2);background:var(--panel);padding:5px 10px}
+.presence b{color:var(--blue2)}
+.panic{background:linear-gradient(180deg,#ff7a7a,var(--red));color:#fff;border:2px solid #000;font-weight:900;font-size:11px;padding:5px 12px;cursor:pointer;letter-spacing:1px;font-family:inherit;transition:transform .08s}
+.panic:active{transform:translateY(2px)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 0}
+.tabs button{font:700 10px "JetBrains Mono",monospace;letter-spacing:1px;color:var(--faint);border:2px solid var(--line);background:transparent;padding:4px 10px;cursor:pointer;text-transform:uppercase;font-family:inherit;transition:all .12s}
+.tabs button:hover{color:#fff}
+.tabs button.on{color:#fff;border-color:#000;background:var(--blue)}
+.rows{padding:12px 14px 6px;display:flex;flex-direction:column;gap:9px;min-height:120px}
+.row{background:var(--panel2);border:2px solid var(--line2);box-shadow:inset 2px 2px 0 #ffffff0a,0 3px 0 #00000059;animation:rowin .22s ease}
+@keyframes rowin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.row-head{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;user-select:none}
+.row-head:hover{filter:brightness(1.12)}
+.tgl{width:36px;height:20px;border:2px solid #000;background:var(--line);position:relative;flex:none;transition:background .15s}
+.tgl::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#8b88b8;transition:left .15s,background .15s}
+.row.on .tgl{background:var(--blue)}
+.row.on .tgl::after{left:18px;background:#fff}
+.row-head b{font-size:14px;display:block}
+.row-head small{font-size:11px;color:var(--dim);display:block}
+.row-head .st{margin-left:auto;font-size:10px;letter-spacing:1px;color:var(--faint);text-transform:uppercase}
+.row.on .row-head .st{color:var(--blue2)}
+.row-head .chev{color:var(--faint);font-size:12px;transition:transform .15s}
+.row.open .row-head .chev{transform:rotate(90deg)}
+.settings{border-top:2px solid var(--line2);padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;overflow:hidden;max-height:600px;transition:max-height .25s ease,padding .25s ease}
+.row:not(.open) .settings{display:none}
+@media(max-width:640px){.settings{grid-template-columns:1fr}}
+.set{background:var(--bg);border:2px solid var(--line);padding:8px 10px}
+.set>label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:6px}
+.set .val{color:var(--blue2);font-weight:700}
+.set .risk{color:var(--hazard);font-size:10px;display:block;margin-top:4px}
+.seg{display:flex;gap:6px}
+.seg span{flex:1;text-align:center;font-size:10px;font-weight:700;padding:5px 0;border:2px solid var(--line2);color:var(--dim);text-transform:uppercase;cursor:pointer;transition:all .12s}
+.seg span:hover{color:#fff}
+.seg span.on{color:#fff;background:linear-gradient(180deg,var(--blue2),var(--blue));border-color:#000}
+.slider{height:12px;background:var(--line);border:2px solid #000;position:relative;cursor:ew-resize;touch-action:none}
+.slider i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--blue2),var(--blue));pointer-events:none}
+.slider em{position:absolute;top:-3px;width:14px;height:14px;background:#fff;border:2px solid #000;transform:translateX(-50%);pointer-events:none}
+.check{display:flex;align-items:center;gap:10px;cursor:pointer}
+.check i{width:16px;height:16px;border:2px solid var(--faint);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-style:normal;transition:all .12s}
+.check.on i{background:var(--blue);border-color:#000}
+.check small{display:block;color:var(--faint);font-size:10px}
+.check.important{border-color:var(--hazard)}
+.check.important small{color:var(--hazard)}
+.keybind{display:inline-block;border:2px solid var(--line2);padding:3px 12px;font-size:11px;color:#fff;background:var(--panel2);cursor:pointer;min-width:60px;text-align:center}
+.keybind.listening{border-color:var(--hazard);color:var(--hazard);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.4}}
+.empty{border:2px dashed var(--line2);padding:26px;text-align:center;color:var(--faint);font-size:12px}
+.empty b{color:var(--blue2);display:block;font-size:30px;letter-spacing:6px;font-family:"Arial Black";margin-bottom:8px}
+.status{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px 14px}
+.status span{background:var(--panel2);border:2px solid var(--line2);padding:6px 12px;font-size:11px;color:var(--dim)}
+.status span b{color:var(--txt);font-variant-numeric:tabular-nums}
+.status .grim{color:var(--hazard)}
+.hud{width:min(880px,100%);margin-top:26px;background:var(--panel);border:2px solid var(--line2);box-shadow:10px 10px 0 #00000073;padding:14px 16px}
+.hud h2{font-size:15px;margin-bottom:4px}
+.hud p{color:var(--dim);font-size:12px;margin-bottom:12px}
+.hudgrid{position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;min-height:120px}
+.hud.edit .hbox{border-style:solid;border-color:var(--hazard);cursor:move}
+.hbox{background:var(--panel2);border:2px dashed var(--line2);padding:10px;font-size:11px;color:var(--dim);user-select:none}
+.hbox b{color:var(--txt);display:block;font-size:12px}
+.hbox .pos{color:var(--hazard);font-size:10px;display:none}
+.hud.edit .hbox .pos{display:block}
+.hudbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.hudbar button{font:700 11px "JetBrains Mono";background:var(--panel2);border:2px solid var(--line2);color:var(--dim);padding:6px 14px;cursor:pointer;text-transform:uppercase;font-family:inherit}
+.hudbar button.on{color:#fff;background:linear-gradient(180deg,var(--blue2),var(--blue));border-color:#000}
+.themes{display:flex;gap:8px;margin-top:12px;align-items:center;font-size:11px;color:var(--dim)}
+.themes i{width:26px;height:26px;border:2px solid #000;cursor:pointer;transition:transform .12s}
+.themes i:hover{transform:scale(1.12)}
+.themes i.on{outline:2px solid #fff}
+.t1{background:linear-gradient(180deg,#9a6bff,#5a3cff)}
+.t2{background:#1a1c2e}
+.t3{background:#0e0e12}
+.t4{background:linear-gradient(135deg,#35e0ff,#5a3cff)}
+/* ===== motyw plasma: szkło + poświata, dłuższe miękkie przejścia ===== */
+body[data-theme="plasma"]{--bg:#070b16;--panel:rgba(22,20,40,.82);--panel2:rgba(16,14,30,.85);--blue:#35c8ff;--blue2:#9a6bff;--blue-glow:rgba(53,200,255,.45);--glow-op:.6;--hazard:#35e0ff}
+body[data-theme="plasma"] .win,body[data-theme="plasma"] .hbox,body[data-theme="plasma"] .chip{backdrop-filter:blur(10px)}
+body[data-theme="plasma"] .row,body[data-theme="plasma"] .tgl::after,body[data-theme="plasma"] .slider em{transition-duration:.3s}
+/* ===== panel editora znika w trybie edycji ===== */
+.hud{transition:opacity .35s ease,transform .35s ease}
+body.editing .hud{opacity:0;transform:scale(.96) translateY(10px);pointer-events:none}
+body.editing .win,body.editing .ticker,body.editing footer{opacity:.12;pointer-events:none;filter:blur(1px)}
+.win,.ticker,footer{transition:opacity .35s ease}
+/* ===== scena: podgląd gry ===== */
+#stage{position:fixed;inset:0;z-index:40;display:none;overflow:hidden;
+ background:radial-gradient(120% 100% at 50% 110%,#1a1440 0%,#0b0a14 55%,#050510 100%)}
+#stage.show{display:block;animation:stagein .4s ease}
+@keyframes stagein{from{opacity:0}to{opacity:1}}
+#stage .gridbg{position:absolute;inset:0;opacity:.14;
+ background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+ background-size:48px 48px}
+#stage .cross{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);opacity:.7}
+#stage .cross::before,#stage .cross::after{content:'';position:absolute;background:#fff}
+#stage .cross::before{left:10px;top:0;width:2px;height:22px}
+#stage .cross::after{top:10px;left:0;width:22px;height:2px}
+#stage .wmark{position:absolute;top:14px;left:0;right:0;text-align:center;color:var(--faint);font-size:11px;letter-spacing:3px}
+#stage .wmark b{color:var(--blue2)}
+.chip{position:absolute;background:var(--panel2);border:2px solid var(--blue2);padding:10px 14px;font-size:11px;color:var(--dim);
+ box-shadow:0 0 22px var(--blue-glow),inset 2px 2px 0 #ffffff0a;cursor:grab;user-select:none;touch-action:none;
+ transition:box-shadow .25s;animation:chipin .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes chipin{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+.chip b{color:var(--txt);display:block;font-size:12px}
+.chip .cpos{color:var(--hazard);font-size:10px}
+.chip.drag{cursor:grabbing;transform-origin:center;box-shadow:0 0 40px var(--blue-glow);z-index:5}
+.chip.drop{animation:wobble .5s ease}
+@keyframes wobble{0%{transform:scale(1.12,.88)}30%{transform:scale(.94,1.08)}55%{transform:scale(1.04,.96)}75%{transform:scale(.98,1.02)}100%{transform:scale(1,1)}}
+.chip.min{animation:lamp .35s ease forwards}
+@keyframes lamp{to{transform:scaleY(.02) scaleX(.6);opacity:0}}
+#dock{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
+#dock button{background:var(--panel2);border:2px solid var(--line2);color:var(--dim);font:inherit;font-size:10px;padding:6px 12px;cursor:pointer;animation:chipin .3s}
+#dock button:hover{color:#fff;border-color:var(--blue2)}
+#doneBtn{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font:700 12px "JetBrains Mono";
+ background:linear-gradient(180deg,var(--blue2),var(--blue));color:#fff;border:2px solid #000;padding:10px 34px;cursor:pointer;letter-spacing:2px;font-family:inherit}
+#doneBtn:active{transform:translateX(-50%) translateY(2px)}
+#gridBtn{position:absolute;bottom:16px;left:16px;font:700 11px "JetBrains Mono";background:var(--panel2);border:2px solid var(--hazard);color:var(--hazard);padding:10px 18px;cursor:pointer;letter-spacing:1px;font-family:inherit}
+#gridBtn.off{border-color:var(--line2);color:var(--faint)}
+#stage.nogrid .gridbg{display:none}
+.chip .cell{color:var(--blue2);font-size:10px;display:block}
+.snapv,.snaph{position:absolute;background:var(--hazard);opacity:.6;display:none;z-index:4}
+.snapv{top:0;bottom:0;width:2px}.snaph{left:0;right:0;height:2px}
+footer{margin-top:26px;color:var(--faint);font-size:11px;text-align:center}
+footer a{color:var(--blue2)}
+.ticker{width:min(880px,100%);margin-top:18px;overflow:hidden;border:2px solid var(--line2);background:var(--panel2);padding:8px 0;white-space:nowrap}
+.ticker span{display:inline-block;padding-left:20px;color:var(--dim);font-size:11px;animation:tick 18s linear infinite}
+@keyframes tick{to{transform:translateX(-50%)}}
+/* ===== bug report ===== */
+.bugform{border:2px solid var(--line2);background:var(--bg);padding:14px;animation:rowin .22s ease}
+.bugform h3{font-size:15px}
+.bugform p{color:var(--faint);font-size:11px;margin:2px 0 10px}
+.bugform .brow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+@media(max-width:640px){.bugform .brow{grid-template-columns:1fr}}
+.bugform input,.bugform select,.bugform textarea{background:var(--panel2);border:2px solid var(--line2);color:var(--txt);font:inherit;font-size:12px;padding:8px 10px;width:100%;outline:none}
+.bugform input:focus,.bugform select:focus,.bugform textarea:focus{border-color:var(--blue2)}
+.bugform select option{background:var(--panel2)}
+.bugform textarea{min-height:90px;resize:vertical;margin:8px 0}
+.bugform .brow2{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bugform button{font:900 13px "Arial Black";background:linear-gradient(180deg,var(--blue2),var(--blue));color:#fff;border:2px solid #000;padding:10px 26px;cursor:pointer;letter-spacing:1px;box-shadow:inset 2px 2px 0 #ffffff59,0 4px 0 #000000a6}
+.bugform button:active{transform:translateY(3px);box-shadow:inset 2px 2px 0 #ffffff59,0 1px 0 #000000a6}
+.bugform button:disabled{filter:grayscale(1) brightness(.7);cursor:wait}
+#bug-status{font-size:11px;color:var(--dim)}
+#bug-status.ok{color:var(--green)}#bug-status.err{color:var(--red)}#bug-status.wait{color:var(--hazard)}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel);border:2px solid var(--blue2);color:var(--txt);font-size:12px;padding:10px 22px;opacity:0;transition:all .25s;z-index:60;pointer-events:none;box-shadow:0 0 24px var(--blue-glow)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body data-theme="polonium">
+
+<div id="splash"><div class="logo">POLONIUM</div><small>weryfikacja licencji… Grim Tested ✅</small></div>
+<div id="toast"></div>
+
+<p class="top-note">DEMO interaktywne — tak będzie działać <b>full ClickGUI w MCEF</b>. Klikaj toggli, ciągnij suwaki, zmieniaj motywy. W grze otwiera się na <kbd>RCTRL</kbd> — tu też zadziała.</p>
+
+<div class="win" id="win">
+  <div class="winbar">
+    <i class="dot"></i><i class="dot"></i><i class="dot"></i>
+    <input class="search" id="search" placeholder="szukaj modułu / settingu...">
+    <span class="presence"><b id="presence">● 128</b> online</span>
+    <button class="panic" id="panic">PANIC</button>
+    <span class="kbd">RCTRL</span>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="rows" id="rows"></div>
+  <div class="status">
+    <span>fps: <b id="fps">240</b></span><span>cps: <b id="cps">12 | 13</b></span><span>ping: <b id="ping">38ms</b></span><span>1.21.11 • schema v7</span>
+  </div>
+</div>
+
+<div class="ticker"><span id="ticker">tip: cps 9-13 z jitterem, nie stałe 14.0 &nbsp;•&nbsp; tip: reach 3.20 to sufit na grim &nbsp;•&nbsp; tip: po fladze pauza, nie retry &nbsp;•&nbsp; tip: scaffold zawsze z rotacją &nbsp;•&nbsp; tip: po fladze pauza, nie retry &nbsp;•&nbsp;</span></div>
+
+<div class="hud" id="hud">
+  <h2>hud editor</h2>
+  <div class="hudbar"><button id="hudedit">hud edit: off</button><span style="font-size:11px;color:var(--faint)">włącz i ciągnij ramki jak w lunarze</span></div>
+  <div class="hudgrid" id="hudgrid">
+    <div class="hbox" data-el="arraylist"><b>arraylist</b><span class="mods">killaura, velocity, esp…</span><span class="pos">x:12% y:8%</span></div>
+    <div class="hbox" data-el="cps"><b>cps-hud</b><span id="cpsbox">12 | 13</span><span class="pos">x:4% y:60%</span></div>
+    <div class="hbox" data-el="keys"><b>keystrokes</b>W A S D + LMB RMB<span class="pos">x:44% y:78%</span></div>
+    <div class="hbox" data-el="armor"><b>armor-hud</b>diament 312/416…<span class="pos">x:44% y:88%</span></div>
+    <div class="hbox" data-el="target"><b>targethud</b>Steve — ❤ 14.2<span class="pos">x:60% y:30%</span></div>
+    <div class="hbox" data-el="wm"><b>watermark</b>polonium v0.4.0<span class="pos">x:88% y:4%</span></div>
+  </div>
+  <div class="themes">motyw: <i class="t1 on" data-th="polonium" title="polonium"></i><i class="t2" data-th="midnight" title="midnight"></i><i class="t3" data-th="ghost" title="ghost"></i><i class="t4" data-th="plasma" title="plasma"></i><span id="thname">polonium</span></div>
+</div>
+
+<!-- scena edycji HUD jak w grze -->
+<div id="stage">
+  <div class="gridbg"></div>
+  <div class="cross"></div>
+  <div class="wmark">PODGLĄD GRY — <b>1.21.11</b> • ciągnij ramki • 2×klik = schowaj (lampa) • G = siatka • ESC = gotowe</div>
+  <div class="snapv" id="snapv"></div>
+  <div class="snaph" id="snaph"></div>
+  <div id="chips"></div>
+  <div id="dock"></div>
+  <button id="gridBtn">SIATKA: ON</button>
+  <button id="doneBtn">GOTOWE ✓</button>
+</div>
+
+<footer>demo do <a href="./cheats.md">cheats.md → How It Looks</a> • tokeny 1:1 z githubweb/styles.css • r=0, bevel MC, hazard-taśma</footer>
+
+<script>
+const CATS=[["combat",5],["movement",3],["player",1],["render",2],["hud",0],["ticket",0],["help",0]];
+// type: seg [options,val] | slider [min,max,step,val,unit] | check [val,hint,important] | bind [val]
+const MODS=[
+{id:"killaura",cat:"combat",name:"killaura",desc:"combat • ghost • single-target",on:true,open:true,set:[
+ ["seg","mode","Ghost|Semi|Blatant",0],["seg","rotacje","Silent|Lock|None",0],
+ ["slider","attack range",3.0,3.6,0.05,3.10,"",["3.30+ = HAZARD na Grim"]],
+ ["slider","cps min / max",5,20,1,9,"",["humanizer losuje między min-max"]],
+ ["check","head rotate check",true,"NIE WYŁĄCZAJ NA GRIM — atak dopiero po obrocie głowy",true],
+ ["check","raycast check",true,"atak tylko gdy promień trafia cel",false],
+ ["check","los check",true,"brak bloku między oczami a celem",false],
+ ["check","gcd check",true,"czekaj na attack-cooldown 1.9",false],
+ ["slider","head tolerance",5,40,1,18,"°",[]],["bind","bind","R"]]},
+{id:"crystal",cat:"combat",name:"crystal aura",desc:"combat • place + break",on:true,set:[
+ ["slider","place range",3,6,0.5,4.5,"",[""]],["slider","break range",3,6,0.5,4.5,"",[""]],
+ ["slider","min-damage wroga",2,15,0.5,6.0,"",["jak FAQ: ustaw min-damage"]],
+ ["slider","max-damage własne",2,12,0.5,4.0,"",["self-pop guard"]],
+ ["check","self-pop guard",true,"nigdy nie bij jeśli zabije Ciebie",true],
+ ["check","totem link",true,"przerwij combo gdy brak totemu i HP<8",false]]},
+{id:"velocity",cat:"combat",name:"velocity",desc:"combat • 90 / 100",on:true,set:[
+ ["seg","tryb","Grim-Safe|Matrix|Custom",0],
+ ["slider","horizontal %",0,100,1,90,"%",["0% = anti-kb = ban"]],
+ ["slider","vertical %",0,100,1,100,"%",[""]],
+ ["check","jump reset",true,"reset przy skoku",false],
+ ["check","fishing guard",true,"nie ruszaj kb od wędki",false],
+ ["check","explosion guard",true,"nie ruszaj kb od kryształów",false]]},
+{id:"reach",cat:"combat",name:"reach",desc:"combat • bonus zasięgu",on:false,set:[
+ ["slider","reach distance",3.0,3.6,0.01,3.20,"",["3.30+ tylko testy lokalne"]],
+ ["check","raycast check",true,"atak tylko gdy raycast dosięga",false],
+ ["check","ping adapt",true,"ping>150 → auto −0.05",false]]},
+{id:"keepsprint",cat:"combat",name:"keepsprint + w-tap",desc:"combat • combo-assist",on:false,set:[
+ ["check","keepsprint",true,"sprint nie spada po hicie",false],
+ ["check","w-tap assist",true,"mikro puszczanie W po hicie",false],
+ ["slider","w-tap delay",40,160,5,80,"ms",[""]]]},
+{id:"scaffold",cat:"combat",name:"scaffold",desc:"movement • grim-safe",on:true,cat2:"movement",set:[
+ ["seg","tryb","Legit|Grim-Safe|Blatant",1],["seg","rotacje","Silent|Lock|None",0],
+ ["slider","place delay",0,150,5,60,"ms",[""]],
+ ["check","head rotate check",true,"place TYLKO po obrocie głowy",true],
+ ["check","safewalk",true,"auto-shift na krawędzi",false],
+ ["check","slot guard",true,"nie zjedz ostatniego stacka",false]]},
+{id:"speed",cat:"movement",name:"speed",desc:"movement • auto-off na grim",on:false,set:[
+ ["seg","tryb","Strafe|LowHop|Off",0],["check","autohop",true,"auto-skok",false],
+ ["check","grim autodisable",true,"na serwerach z Grim sam się wyłącza",true]]},
+{id:"mlg",cat:"movement",name:"nofall + mlg",desc:"movement • auto-woda",on:false,set:[
+ ["seg","nofall","Packet|MLG-Only|Off",1],
+ ["slider","mlg min height",4,12,1,6,"",["jak FAQ: 6+ kratek"]],
+ ["check","slot scan",true,"skan hotbaru po wiadrze",false],
+ ["check","nether guard",true,"w Netherze MLG OFF",false]]},
+{id:"autoarmor",cat:"player",name:"autoarmor + totem",desc:"player • inventory-assist",on:false,set:[
+ ["check","autoarmor",true,"zakładaj najlepszą zbroję",false],
+ ["slider","click delay",50,400,10,150,"ms",["<80 ryzyko"]],
+ ["check","autototem",true,"totem do offhanda",false],
+ ["slider","totem threshold",4,16,1,10,"HP",[""]]]},
+{id:"esp",cat:"render",name:"esp",desc:"render • box + health",on:true,set:[
+ ["seg","tryb","Box|Box+HP|Chams-Lite",0],
+ ["slider","range",16,256,8,64,"m",["wydajność"]],
+ ["check","through walls",true,"sedno ESP",false],
+ ["check","streamer proof",true,"ukryj na F1 / stream-mode",false],
+ ["check","tracers",false,"linie do graczy (śmiecą)",false]]},
+{id:"fullbright",cat:"render",name:"fullbright",desc:"render • gamma 12",on:true,set:[
+ ["slider","gamma",1,20,1,12,"",[""]],
+ ["check","noblind",true,"brak ciemności / blind",false]]},
+];
+MODS.find(m=>m.id==="scaffold").cat="movement";
+let curCat="combat", query="";
+const rows=document.getElementById("rows"), tabs=document.getElementById("tabs");
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1800);}
+
+// ===== bug report -> backend (Edge Function bug-report) =====
+const BUG_API="https://jofzsdbebwbjbsitetli.supabase.co/functions/v1/bug-report";
+const BUG_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZnpzZGJlYndiamJzaXRldGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1ODkxMTgsImV4cCI6MjEwNzE2NTExOH0.OrfEkY_SWHfl1TaJZAyKxDrzICch-L48ft8o1LfNyws";
+function bindBug(){
+  const btn=document.getElementById("bug-send"),st=document.getElementById("bug-status");
+  const say=(msg,cls)=>{st.textContent=msg;st.className=cls||"";};
+  let cd=0;
+  btn.onclick=async()=>{
+    if(cd>0)return;
+    const nick=document.getElementById("bug-nick").value.trim(),
+      contact=document.getElementById("bug-contact").value.trim(),
+      module=document.getElementById("bug-module").value,
+      title=document.getElementById("bug-title").value.trim(),
+      text=document.getElementById("bug-text").value.trim(),
+      honey=document.getElementById("bug-honey").value;
+    btn.disabled=true;say("wysyłam do backendu…","wait");
+    try{
+      const r=await fetch(BUG_API,{method:"POST",
+        headers:{"Content-Type":"application/json",apikey:BUG_ANON,Authorization:"Bearer "+BUG_ANON},
+        body:JSON.stringify({nick,contact,module,title,text,honey})});
+      const j=await r.json().catch(()=>({}));
+      if(r.status===429){say(`spam-guard: odczekaj ${j.retry_after||30}s`,"err");cd=j.retry_after||30;tick();return;}
+      if(!r.ok){say("błąd: "+(j.error||r.status),"err");btn.disabled=false;return;}
+      say(`zapisano ✓ (id ${String(j.id||"").slice(0,8)}…) — dla admina widoczne za ${j.visible_after_s||30}s`,"ok");
+      document.getElementById("bug-title").value="";document.getElementById("bug-text").value="";
+      cd=30;tick(); // lokalny cooldown jak w backendzie
+    }catch{ say("brak połączenia z backendem","err");btn.disabled=false; }
+  };
+  function tick(){
+    if(cd<=0){btn.disabled=false;btn.textContent="WYŚLIJ REPORT";return;}
+    btn.disabled=true;btn.textContent=`CZEKAJ ${cd}s`;cd--;setTimeout(tick,1000);
+  }
+}
+
+function renderTabs(){
+  tabs.innerHTML=CATS.map(([c,n])=>`<button data-c="${c}" class="${c===curCat?'on':''}">${c}${n?` ${n}`:""}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{curCat=b.dataset.c;renderTabs();renderRows();});
+}
+function matchQ(m){
+  if(!query)return true;const q=query.toLowerCase();
+  return (m.name+m.desc+JSON.stringify(m.set)).toLowerCase().includes(q);
+}
+function setHTML(s){
+  const t=s[0],k=s[1];
+  if(t==="seg"){const[o,v]=[s[2].split("|"),s[3]];return `<div class="set"><label><b>${k}</b></label><div class="seg" data-k="${k}">${o.map((x,i)=>`<span data-i="${i}" class="${i===v?'on':''}">${x}</span>`).join("")}</div>${s[4]?`<span class="risk">⚠ ${s[4]}</span>`:""}</div>`;}
+  if(t==="slider"){const[mn,mx,st,v,u,risk]=s.slice(2);const p=(v-mn)/(mx-mn)*100;
+    return `<div class="set"><label><b>${k}</b><span class="val" data-v>${v}${u}</span></label><div class="slider" data-k="${k}" data-mn="${mn}" data-mx="${mx}" data-st="${st}" data-u="${u}"><i style="width:${p}%"></i><em style="left:${p}%"></em></div>${risk&&risk[0]?`<span class="risk">⚠ ${risk[0]}</span>`:""}</div>`;}
+  if(t==="check"){const[v,h,imp]=s.slice(2);
+    return `<div class="set check ${v?'on':''} ${imp?'important':''}" data-k="${k}"><i>${v?'✓':''}</i><div><b>${k}</b><small>${h}</small></div></div>`;}
+  if(t==="bind"){return `<div class="set"><label><b>${k}</b></label><span class="keybind" data-k="${k}">${s[2]}</span></div>`;}
+  return "";
+}
+function renderRows(){
+  const list=MODS.filter(m=>m.cat===curCat&&matchQ(m));
+  if(curCat==="hud"){rows.innerHTML=`<div class="empty"><b>HUD</b>arraylist • cps • keystrokes • armor — podgląd na żywo poniżej ⬇<br>zębatka → hud edit → ciągnij ramki</div>`;return;}
+  if(curCat==="ticket"){rows.innerHTML=`<div class="bugform">
+    <h3>BUG REPORT</h3>
+    <p>leci do backendu → weryfikacja + zapis z 30s opóźnieniem (antyspam: 1 raport / 30s)</p>
+    <div class="brow"><input id="bug-nick" maxlength="24" placeholder="nick">
+    <input id="bug-contact" maxlength="64" placeholder="kontakt (discord)">
+    <select id="bug-module">${["killaura","crystal","velocity","reach","keepsprint","scaffold","speed","mlg","autoarmor","esp","fullbright","hud","launcher","strona","inne"].map(m=>`<option>${m}</option>`).join("")}</select></div>
+    <input id="bug-title" maxlength="80" placeholder="tytuł (min 5 znaków)">
+    <textarea id="bug-text" maxlength="2000" placeholder="co się stało? kroki, moduł, serwer... (min 10 znaków)"></textarea>
+    <input id="bug-honey" style="display:none" tabindex="-1" autocomplete="off">
+    <div class="brow2"><button id="bug-send">WYŚLIJ REPORT</button><span id="bug-status"></span></div>
+    </div>`;bindBug();return;}
+  if(curCat==="help"){rows.innerHTML=`<div class="empty"><b>HELP</b>RCTRL = menu • bind: kliknij wiersz → klawisz • Backspace = czyść, Esc = anuluj<br>MLG: wiadro w hotbarze, skok 6+ kratek, nie w Netherze</div>`;return;}
+  if(!list.length){rows.innerHTML=`<div class="empty"><b>∅</b>brak wyników dla „${query}"</div>`;return;}
+  rows.innerHTML=list.map(m=>`<div class="row ${m.on?'on':''} ${m.open?'open':''}" data-id="${m.id}">
+    <div class="row-head"><span class="tgl"></span><div><b>${m.name}</b><small>${m.desc}</small></div><span class="st">${m.on?'on':'off'}</span><span class="chev">▸</span></div>
+    <div class="settings">${m.set.map(setHTML).join("")}</div></div>`).join("");
+  bindRows();
+}
+function bindRows(){
+  rows.querySelectorAll(".row").forEach(r=>{
+    const m=MODS.find(x=>x.id===r.dataset.id);
+    r.querySelector(".row-head").onclick=e=>{
+      if(e.target.closest(".tgl")){m.on=!m.on;r.classList.toggle("on",m.on);r.querySelector(".st").textContent=m.on?"on":"off";return;}
+      m.open=!m.open;r.classList.toggle("open",m.open);
+    };
+    r.querySelectorAll(".seg span").forEach(sp=>sp.onclick=()=>{
+      const box=sp.parentElement;box.querySelectorAll("span").forEach(x=>x.classList.remove("on"));sp.classList.add("on");
+      const s=m.set.find(x=>x[0]==="seg"&&x[1]===box.dataset.k);s[3]=+sp.dataset.i;
+    });
+    r.querySelectorAll(".check").forEach(c=>c.onclick=()=>{
+      const s=m.set.find(x=>x[0]==="check"&&x[1]===c.dataset.k);s[2]=!s[2];
+      c.classList.toggle("on",s[2]);c.querySelector("i").textContent=s[2]?"✓":"";
+      if(s[2]===false&&c.classList.contains("important"))toast("⚠ "+s[1]+" OFF — ryzyko flag na Grim");
+    });
+    r.querySelectorAll(".slider").forEach(sl=>{
+      const s=m.set.find(x=>x[0]==="slider"&&x[1]===sl.dataset.k);
+      const move=e=>{const rc=sl.getBoundingClientRect();let p=(e.clientX-rc.left)/rc.width;p=Math.max(0,Math.min(1,p));
+        let v=+sl.dataset.mn+p*(+sl.dataset.mx-+sl.dataset.mn);v=Math.round(v/+sl.dataset.st)*+sl.dataset.st;v=+v.toFixed(2);
+        s[5]=v;const pc=(v-+sl.dataset.mn)/(+sl.dataset.mx-+sl.dataset.mn)*100;
+        sl.querySelector("i").style.width=pc+"%";sl.querySelector("em").style.left=pc+"%";
+        sl.closest(".set").querySelector("[data-v]").textContent=v+sl.dataset.u;};
+      sl.onpointerdown=e=>{sl.setPointerCapture(e.pointerId);move(e);
+        const up=()=>{sl.onpointermove=null;sl.onpointerup=null;};sl.onpointermove=move;sl.onpointerup=up;};
+    });
+    r.querySelectorAll(".keybind").forEach(kb=>kb.onclick=()=>{
+      kb.classList.add("listening");kb.textContent="…";
+      const h=e=>{e.preventDefault();
+        const s=m.set.find(x=>x[0]==="bind");
+        if(e.key==="Backspace"){s[2]="—";}else if(e.key==="Escape"){kb.classList.remove("listening");kb.textContent=s[2];document.removeEventListener("keydown",h,true);return;}
+        else{s[2]=e.key.toUpperCase();}
+        kb.textContent=s[2];kb.classList.remove("listening");document.removeEventListener("keydown",h,true);};
+      document.addEventListener("keydown",h,true);
+    });
+  });
+}
+// search
+document.getElementById("search").oninput=e=>{query=e.target.value.trim();renderRows();};
+// panic
+document.getElementById("panic").onclick=e=>{
+  MODS.forEach(m=>m.on=false);renderRows();
+  const w=document.getElementById("win");w.classList.remove("flash");void w.offsetWidth;w.classList.add("flash");
+  e.target.textContent="SAFE ✓";toast("PANIC — wszystko OFF");setTimeout(()=>e.target.textContent="PANIC",1500);
+};
+// RCTRL toggle
+document.addEventListener("keydown",e=>{
+  if(e.key==="Control"&&e.location===2){const w=document.getElementById("win");w.classList.toggle("hidden-gui");
+    toast(w.classList.contains("hidden-gui")?"RCTRL — okno schowane":"RCTRL — okno otwarte");}
+});
+// żywe liczniki
+let cpsL=12,cpsR=13,online=128;
+setInterval(()=>{
+  cpsL=Math.max(9,Math.min(14,cpsL+(Math.random()*2-1)));
+  cpsR=Math.max(9,Math.min(14,cpsR+(Math.random()*2-1)));
+  const t=`${Math.round(cpsL)} | ${Math.round(cpsR)}`;
+  document.getElementById("cps").textContent=t;document.getElementById("cpsbox").textContent=t;
+  document.getElementById("fps").textContent=232+Math.floor(Math.random()*16);
+  document.getElementById("ping").textContent=(34+Math.floor(Math.random()*14))+"ms";
+  if(Math.random()<.3){online+=Math.random()<.5?-1:1;document.getElementById("presence").textContent="● "+online;}
+},600);
+// motywy
+document.querySelectorAll(".themes i").forEach(d=>d.onclick=()=>{
+  document.querySelectorAll(".themes i").forEach(x=>x.classList.remove("on"));d.classList.add("on");
+  document.body.dataset.theme=d.dataset.th;document.getElementById("thname").textContent=d.dataset.th;
+  toast("motyw: "+d.dataset.th);
+});
+// ===== scena HUD jak w grze (plasma-feel) =====
+const stage=document.getElementById("stage"),chipsBox=document.getElementById("chips"),
+ dock=document.getElementById("dock"),snapv=document.getElementById("snapv"),snaph=document.getElementById("snaph"),
+ gridBtn=document.getElementById("gridBtn");
+const GRID=48;let gridOn=true; // grid system: komórki 48px, snap + współrzędne C/R
+const CHIPPOS={}; // data-el -> {x,y} w px (pamiętane między wejściami)
+function enterStage(){
+  document.body.classList.add("editing");stage.classList.add("show");dock.innerHTML="";
+  const R=stage.getBoundingClientRect();
+  const defs=[[.08,.12],[.06,.62],[.40,.72],[.40,.84],[.58,.28],[.82,.08]];
+  document.querySelectorAll("#hudgrid .hbox").forEach((b,i)=>{
+    const el=b.dataset.el,name=b.querySelector("b").textContent;
+    if(!CHIPPOS[el])CHIPPOS[el]={x:R.width*defs[i%defs.length][0],y:R.height*defs[i%defs.length][1]};
+    const c=document.createElement("div");c.className="chip";c.dataset.el=el;
+    c.style.left=CHIPPOS[el].x+"px";c.style.top=CHIPPOS[el].y+"px";
+    c.innerHTML=`<b>${name}</b><span class="cpos"></span><span class="cell"></span>`;
+    const upd=()=>{const r=c.getBoundingClientRect();
+      c.querySelector(".cpos").textContent=`x:${Math.round(r.left/R.width*100)}% y:${Math.round(r.top/R.height*100)}%`;
+      c.querySelector(".cell").textContent=`komórka C${Math.floor(r.left/GRID)+1} : R${Math.floor(r.top/GRID)+1}`;};
+    upd();c._upd=upd;
+    // drag z przechyłem za prędkością (jelly)
+    let lx=0,sx=0,sy=0,ox=0,oy=0;
+    c.onpointerdown=e=>{c.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;
+      ox=parseFloat(c.style.left);oy=parseFloat(c.style.top);
+      c.classList.add("drag");c.style.transition="none";
+      c.onpointermove=ev=>{const nx=ox+ev.clientX-sx,ny=oy+ev.clientY-sy;
+        const vx=ev.clientX-lx;lx=ev.clientX;
+        c.style.transform=`rotate(${Math.max(-8,Math.min(8,vx*.6))}deg) scale(1.06)`;
+        c.style.left=nx+"px";c.style.top=ny+"px";
+        // snap do środka ekranu
+        const r=c.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+        let snapped=false;
+        // tylko linie pomocnicze w trakcie ciągnięcia — snap dopiero po puszczeniu
+        if(Math.abs(cx-R.width/2)<12){snapv.style.display="block";snapv.style.left=R.width/2+"px";}else snapv.style.display="none";
+        if(Math.abs(cy-R.height/2)<12){snaph.style.display="block";snaph.style.top=R.height/2+"px";}else snaph.style.display="none";
+        c._upd();};
+      c.onpointerup=()=>{c.onpointermove=null;c.onpointerup=null;
+        c.classList.remove("drag");c.style.transition="";c.style.transform="";
+        snapv.style.display="none";snaph.style.display="none";
+        // snap: do komórek gridu (domyślnie) albo 4px + środek po puszczeniu
+        const step=gridOn?GRID:4;
+        let gx=Math.round(parseFloat(c.style.left)/step)*step,gy=Math.round(parseFloat(c.style.top)/step)*step;
+        const r2=c.getBoundingClientRect();
+        if(Math.abs((r2.left+r2.width/2)-R.width/2)<14)gx=Math.round((R.width/2-r2.width/2)/4)*4;
+        if(Math.abs((r2.top+r2.height/2)-R.height/2)<14)gy=Math.round((R.height/2-r2.height/2)/4)*4;
+        c.style.left=gx+"px";c.style.top=gy+"px";
+        CHIPPOS[el]={x:gx,y:gy};
+        c.classList.remove("drop");void c.offsetWidth;c.classList.add("drop");c._upd();};};
+    // 2xklik = lampa do docka
+    c.ondblclick=()=>{c.classList.add("min");
+      setTimeout(()=>{c.style.display="none";
+        const d=document.createElement("button");d.textContent=name;d.onclick=()=>{
+          c.style.display="block";c.classList.remove("min");c.classList.remove("drop");void c.offsetWidth;c.classList.add("drop");d.remove();};
+        dock.appendChild(d);},340);};
+    chipsBox.appendChild(c);
+  });
+  document.getElementById("hudedit").textContent="hud edit: on";
+  document.getElementById("hudedit").classList.add("on");
+  toast("scena gry — ustawiaj ramki, 2×klik chowa");
+}
+function exitStage(){
+  document.body.classList.remove("editing");stage.classList.remove("show");chipsBox.innerHTML="";
+  document.getElementById("hudedit").textContent="hud edit: off";
+  document.getElementById("hudedit").classList.remove("on");
+  toast("pozycje zapisane ✓ (panel wraca z fade)");
+}
+document.getElementById("hudedit").onclick=()=>enterStage();
+document.getElementById("doneBtn").onclick=()=>exitStage();
+function toggleGrid(){gridOn=!gridOn;stage.classList.toggle("nogrid",!gridOn);
+  gridBtn.textContent="SIATKA: "+(gridOn?"ON":"OFF");gridBtn.classList.toggle("off",!gridOn);}
+gridBtn.onclick=toggleGrid;
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&stage.classList.contains("show"))exitStage();
+  if((e.key==="g"||e.key==="G")&&stage.classList.contains("show")&&!e.ctrlKey)toggleGrid();
+});
+// splash
+renderTabs();renderRows();
+setTimeout(()=>document.getElementById("splash").classList.add("gone"),950);
+</script>
+</body>
+</html>

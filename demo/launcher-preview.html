@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>polonium — launcher demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0a14; --panel:#161428; --panel2:#100e1e;
+  --line:#2c2a4a; --line2:#3d3a66;
+  --txt:#f2f0e9; --dim:#8b88b8; --faint:#55527d;
+  --blue:#5a3cff; --blue2:#9a6bff; --blue-dim:#241a7a;
+  --hazard:#ffd52e; --red:#e5484d; --green:#3ddc84;
+}
+body{background:var(--bg);color:var(--txt);font:13px/1.6 "JetBrains Mono",monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 16px 60px}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(115% 90% at 50% 30%,transparent 55%,#000000b0 100%)}
+.top-note{color:var(--dim);font-size:12px;margin-bottom:14px;text-align:center}
+.top-note b{color:var(--hazard)}
+.win{width:min(760px,100%);background:var(--panel);border:2px solid var(--line2);box-shadow:10px 10px 0 #00000073,14px 14px 0 var(--blue-dim)}
+.win::before{content:'';display:block;height:5px;background:repeating-linear-gradient(45deg,var(--hazard) 0 10px,var(--bg) 10px 20px)}
+.winbar{display:flex;align-items:center;gap:7px;padding:10px 16px;border-bottom:2px solid var(--line2);background:var(--panel2);font-size:11px;color:var(--dim)}
+.winbar i{width:11px;height:11px;border:2px solid #000;background:var(--hazard)}
+.winbar i:first-child{background:var(--red)}
+.logo{display:flex;align-items:center;gap:9px;margin-left:8px;font-family:"Arial Black";font-size:15px}
+.logo .ver{font:700 10px "JetBrains Mono";color:#fff;background:var(--blue);padding:3px 9px;border:2px solid #000}
+.body{display:grid;grid-template-columns:190px 1fr;min-height:420px}
+@media(max-width:640px){.body{grid-template-columns:1fr}}
+.side{border-right:2px solid var(--line2);padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--panel2)}
+@media(max-width:640px){.side{border-right:none;border-bottom:2px solid var(--line2);flex-direction:row;flex-wrap:wrap}}
+.side button{font:900 13px "Arial Black";text-transform:uppercase;letter-spacing:1px;background:transparent;border:2px solid transparent;color:var(--dim);padding:10px;cursor:pointer;text-align:left;font-family:inherit}
+.side button:hover{color:#fff}
+.side button.on{color:#fff;background:linear-gradient(180deg,var(--blue2),var(--blue));border-color:#000}
+.side .foot{margin-top:auto;font-size:10px;color:var(--faint)}
+.main{padding:18px;position:relative}
+.pane{display:none;animation:rowin .22s ease}
+.pane.on{display:block}
+@keyframes rowin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.play{background:linear-gradient(180deg,var(--blue2),var(--blue));border:2px solid #000;color:#fff;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;text-align:left;font-family:inherit;box-shadow:inset 2px 2px 0 #ffffff59,inset -2px -2px 0 #00000073,0 6px 0 #000000a6}
+.play:active{transform:translateY(4px);box-shadow:inset 2px 2px 0 #ffffff59,0 1px 0 #000000a6}
+.play img{width:46px;height:46px;image-rendering:pixelated;background:#00000033;border:2px solid #ffffff66}
+.play b{display:block;font:900 24px "Arial Black";letter-spacing:5px}
+.play small{display:block;font-size:11px;opacity:.85}
+.play:disabled{filter:grayscale(1) brightness(.75);cursor:wait}
+.log{background:#000;border:2px solid var(--line2);font-size:11px;color:var(--dim);padding:10px 12px;height:130px;overflow:auto;margin-top:0}
+.log .ok{color:var(--green)}.log .warn{color:var(--hazard)}.log .err{color:var(--red)}
+.sect{font-size:10px;letter-spacing:2px;color:var(--faint);margin:14px 0 6px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.sect::after{content:'';flex:1;height:2px;background:var(--line)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.chips span{background:var(--panel2);border:2px solid var(--line2);padding:5px 12px;font-size:11px;color:var(--dim)}
+.chips span b{color:var(--txt)}
+.chips .live b{color:var(--green)}
+.plist{border:2px solid var(--line2);background:var(--panel2);max-height:190px;overflow:auto}
+.prow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:2px solid var(--line);font-size:12px;animation:rowin .25s ease}
+.prow:last-child{border-bottom:none}
+.prow img{width:26px;height:26px;image-rendering:pixelated;background:#00000033;border:2px solid var(--line2)}
+.prow .nick{font-weight:700}
+.prow .st{margin-left:auto;font-size:10px;letter-spacing:1px;color:var(--faint)}
+.prow .st.playing{color:var(--green)}
+.prow .ping{font-size:11px;color:var(--dim);min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+.prow .abtn{font:700 10px "JetBrains Mono";background:var(--panel);border:2px solid var(--line2);color:var(--dim);padding:3px 10px;cursor:pointer;font-family:inherit}
+.prow .abtn:hover{color:#fff;border-color:var(--blue2)}
+.prow .abtn.use.on{color:#fff;background:linear-gradient(180deg,var(--blue2),var(--blue));border-color:#000}
+.prow .abtn.del:hover{color:var(--red);border-color:var(--red)}
+.prow .tag{font-size:9px;letter-spacing:1px;border:2px solid var(--line2);padding:2px 8px;color:var(--dim)}
+.prow .tag.np{color:var(--hazard);border-color:var(--hazard)}
+.aform{display:none;gap:8px;margin-bottom:8px;grid-template-columns:1fr auto}
+.aform.show{display:grid}
+@media(max-width:640px){.aform.show{grid-template-columns:1fr}}
+.aform .btn{margin-top:0;padding:8px 16px;font-size:11px}
+.aform input{font-size:12px;letter-spacing:1px}
+.plist-head{display:flex;align-items:center;margin-bottom:6px}
+.plist-head button{margin-left:auto;font:700 10px "JetBrains Mono";background:var(--panel2);border:2px solid var(--line2);color:var(--dim);padding:4px 12px;cursor:pointer;font-family:inherit}
+.plist-head button:hover{color:#fff;border-color:var(--blue2)}
+.pbar{height:14px;background:var(--line);border:2px solid #000;margin-top:12px;position:relative;display:none}
+.pbar.show{display:block}
+.pbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--blue2),var(--blue));transition:width .3s}
+.ver-row{display:flex;align-items:center;gap:12px;background:var(--panel2);border:2px solid var(--line2);padding:11px 14px;margin-bottom:9px}
+.ver-row.cur{border-color:#000;background:linear-gradient(180deg,var(--blue2),var(--blue))}
+.ver-row b{font-size:14px}
+.ver-row small{color:var(--dim);font-size:11px;display:block}
+.ver-row.cur small{color:#fff}
+.ver-row .tag{margin-left:auto;font-size:10px;letter-spacing:1px;color:var(--faint)}
+.ver-row.cur .tag{color:#fff}
+.ver-row.lock{opacity:.45}
+label.fl{display:block;font-size:11px;color:var(--dim);margin:10px 0 4px}
+input[type=text],input[type=password]{background:var(--panel2);border:2px solid var(--line2);color:var(--txt);font:inherit;font-size:14px;letter-spacing:2px;padding:10px 12px;width:100%;outline:none;text-transform:uppercase}
+input[type=text]:focus,input[type=password]:focus{border-color:var(--blue2)}
+input[type=password]{letter-spacing:4px}
+#serverIp{margin-bottom:12px}
+.btn{font:900 13px "Arial Black";background:linear-gradient(180deg,#ffe58a,var(--hazard));color:#16150f;border:2px solid #000;padding:10px 22px;cursor:pointer;margin-top:10px;box-shadow:inset 2px 2px 0 #ffffff80,0 4px 0 #000000a6;font-family:inherit}
+.btn:active{transform:translateY(3px);box-shadow:inset 2px 2px 0 #ffffff80,0 1px 0 #000000a6}
+.lic-ok{border:2px solid var(--green);padding:10px 12px;margin-top:10px;font-size:12px;display:none}
+.lic-ok.show{display:block}
+.lic-ok b{color:var(--green)}
+.set{background:var(--panel2);border:2px solid var(--line2);padding:10px 12px;margin-bottom:10px}
+.set label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:6px}
+.set .val{color:var(--blue2);font-weight:700}
+.seg{display:flex;gap:6px}
+.seg span{flex:1;text-align:center;font-size:11px;font-weight:700;padding:6px 0;border:2px solid var(--line2);color:var(--dim);cursor:pointer}
+.seg span.on{color:#fff;background:linear-gradient(180deg,var(--blue2),var(--blue));border-color:#000}
+.slider{height:12px;background:var(--line);border:2px solid #000;position:relative;cursor:ew-resize;touch-action:none}
+.slider i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--blue2),var(--blue));pointer-events:none}
+.slider em{position:absolute;top:-3px;width:14px;height:14px;background:#fff;border:2px solid #000;transform:translateX(-50%);pointer-events:none}
+.check{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px}
+.check i{width:16px;height:16px;border:2px solid var(--faint);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-style:normal}
+.check.on i{background:var(--blue);border-color:#000}
+footer{margin-top:22px;color:var(--faint);font-size:11px}
+footer a{color:var(--blue2)}
+</style>
+</head>
+<body>
+<p class="top-note">DEMO launchera — klikaj zakładki, wklej klucz, odpal <b>GRAJ</b>. Weryfikacja licencji na razie mock (prawdziwa w F2).</p>
+<div class="win">
+  <div class="winbar"><i></i><i></i><i></i><div class="logo">polonium <span class="ver">v0.4.0 Beta</span></div></div>
+  <div class="body">
+    <div class="side">
+      <button data-p="play" class="on">GRAJ</button>
+      <button data-p="vers">WERSJE</button>
+      <button data-p="lic">LICENCJA</button>
+      <button data-p="set">USTAWIENIA</button>
+      <div class="foot">single-version<br>tylko 1.21.11</div>
+    </div>
+    <div class="main">
+      <div class="pane on" id="p-play">
+        <div class="chips"><span>wersja <b>1.21.11</b></span><span>konto <b id="accchip">—</b></span><span class="live">status <b>● online</b></span></div>
+        <label class="fl">serwer</label>
+        <input type="text" id="serverIp" maxlength="64" placeholder="play.serwer.pl:25565">
+        <button class="play" id="playBtn"><img src="https://mc-heads.net/avatar/Polonium/38" alt=""><span><b>GRAJ</b><small>1.21.11 • java 21 auto</small></span></button>
+        <div class="pbar" id="pbar"><i></i></div>
+        <div class="sect">terminal</div>
+        <div class="log" id="log"><div>&gt; launcher gotowy. wklej klucz w zakładce LICENCJA.</div></div>
+        <div class="sect plist-head">konta — crack (<span id="pcount">0</span>)<span style="display:flex;gap:6px;margin-left:auto"><button id="importIAS">IMPORT Z IAS</button><button id="addAcc">+ DODAJ</button></span></div>
+        <input type="file" id="iasfile" accept=".json,application/json" style="display:none">
+        <div class="aform" id="aform"><input type="text" id="anick" maxlength="16" placeholder="nick (crack)"><button class="btn" id="asave">ZAPISZ</button></div>
+        <div class="plist" id="plist"></div>
+        <div class="sect plist-head">auto-login (<span id="scount">0</span>)<button id="addSrv">+ HASŁO</button></div>
+        <div class="aform" id="srvform"><input type="text" id="srvIp" maxlength="64" placeholder="serwer"><input type="password" id="srvPass" maxlength="64" placeholder="hasło"><button class="btn" id="srvSave">ZAPISZ</button></div>
+        <div class="plist" id="srvlist"></div>
+      </div>
+      <div class="pane" id="p-vers">
+        <div class="ver-row cur"><div><b>1.21.11</b><small>polonium stable • zainstalowana</small></div><span class="tag">GRAJ</span></div>
+        <div class="ver-row lock"><div><b>1.21.10</b><small>niewspierana przez ten build</small></div><span class="tag">LOCK</span></div>
+        <div class="ver-row lock"><div><b>1.8.9</b><small>legit-pvp • poza scopem</small></div><span class="tag">LOCK</span></div>
+      </div>
+      <div class="pane" id="p-lic">
+        <label class="fl">klucz licencyjny</label>
+        <input type="text" id="key" maxlength="14" placeholder="XXXX-XXXX-XXXX">
+        <button class="btn" id="verify">SPRAWDŹ KLUCZ</button>
+        <div class="lic-ok" id="licok"></div>
+      </div>
+      <div class="pane" id="p-set">
+        <div class="set"><label>RAM dla gry <span class="val" id="ramv">4 GB</span></label><div class="slider" id="ramsl"><i style="width:37%"></i><em style="left:37%"></em></div></div>
+        <div class="set"><label>kanał</label><div class="seg" id="chan"><span class="on">stable</span><span>beta</span></div></div>
+        <div class="set"><div class="check on" id="closebox"><i>✓</i>zamknij launcher po starcie gry</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>demo do <a href="./cheats.md">cheats.md → How It Looks</a> • <a href="./clickgui-preview.html">clickgui preview</a></footer>
+<script>
+let licensed=false;
+document.querySelectorAll(".side button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".side button").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  document.querySelectorAll(".pane").forEach(p=>p.classList.remove("on"));
+  document.getElementById("p-"+b.dataset.p).classList.add("on");
+});
+const log=document.getElementById("log");
+function say(t,cls){const d=document.createElement("div");if(cls)d.className=cls;d.textContent="> "+t;log.appendChild(d);log.scrollTop=log.scrollHeight;}
+document.getElementById("verify").onclick=()=>{
+  const k=document.getElementById("key").value.trim().toUpperCase(),box=document.getElementById("licok");
+  if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(k)){box.classList.remove("show");say("zły format klucza (XXXX-XXXX-XXXX)","err");return;}
+  licensed=true;box.classList.add("show");
+  box.innerHTML="<b>KLUCZ OK ✓</b><br>plan: 30D • wygasa za 29d • HWID: dopięty";
+  say("licencja zweryfikowana (mock).","ok");
+};
+document.getElementById("playBtn").onclick=e=>{
+  if(!licensed){say("najpierw wklej klucz w zakładce LICENCJA.","warn");return;}
+  if(!ACTIVE){say("wybierz konto z listy KONT poniżej.","warn");return;}
+  const ip=document.getElementById("serverIp").value.trim().toLowerCase();
+  if(!ip){say("wpisz adres serwera.","warn");return;}
+  try{localStorage.setItem("polonium-last-server",ip);}catch{}
+  const acc=ALTS.find(a=>a.nick===ACTIVE);
+  const known=acc&&acc.servers[ip]?acc.servers[ip].pass:null;
+  const btn=e.currentTarget,bar=document.getElementById("pbar"),fill=bar.querySelector("i");
+  btn.disabled=true;bar.classList.add("show");log.innerHTML="";say("start…");
+  const steps=[["sprawdzanie javy 21…",12,""],["java 21 OK (auto).",25,"ok"],["weryfikacja licencji…",42,""],["licencja OK.",58,"ok"],["pobieranie 1.21.11 + fabric…",76,""],["ładuję polonium 0.4.0…",90,""],["łączenie z "+ip+" jako "+ACTIVE+"…",96,""]];
+  if(known)steps.push(["/login •••••••• (auto-login ✓)",100,"ok"]);
+  else steps.push(["brak hasła — serwer poprosi o /register, potem dopisz je w AUTO-LOGIN.",100,"warn"]);
+  let i=0;
+  const h=setInterval(()=>{
+    if(i>=steps.length){clearInterval(h);btn.disabled=false;setTimeout(()=>bar.classList.remove("show"),1200);return;}
+    say(steps[i][0],steps[i][2]);fill.style.width=steps[i][1]+"%";i++;
+  },650);
+};
+(function(){const sl=document.getElementById("ramsl");
+  const move=e=>{const rc=sl.getBoundingClientRect();let p=Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width));
+    let gb=Math.round((2+p*14)*2)/2;document.getElementById("ramv").textContent=gb+" GB";
+    const pc=(gb-2)/14*100;sl.querySelector("i").style.width=pc+"%";sl.querySelector("em").style.left=pc+"%";};
+  sl.onpointerdown=e=>{sl.setPointerCapture(e.pointerId);move(e);sl.onpointermove=move;sl.onpointerup=()=>{sl.onpointermove=null;sl.onpointerup=null;};};
+})();
+document.querySelectorAll("#chan span").forEach(s=>s.onclick=()=>{
+  document.querySelectorAll("#chan span").forEach(x=>x.classList.remove("on"));s.classList.add("on");
+  say("kanał: "+s.textContent+(s.textContent==="beta"?" (jawne ryzyko)":""));
+});
+document.getElementById("closebox").onclick=e=>{
+  const c=e.currentTarget,on=c.classList.toggle("on");c.querySelector("i").textContent=on?"✓":"";
+};
+// konta crack — localStorage, demo; w F2 sync z launcherem
+let ALTS=[];try{ALTS=JSON.parse(localStorage.getItem("polonium-alts")||"[]");}catch{}
+ALTS.forEach(a=>{a.servers=a.servers||{};}); // servers: {ip: {pass}}
+let ACTIVE=localStorage.getItem("polonium-active-alt")||"";
+function saveAlts(){try{localStorage.setItem("polonium-alts",JSON.stringify(ALTS));localStorage.setItem("polonium-active-alt",ACTIVE);}catch{}}
+function renderAlts(){
+  const box=document.getElementById("plist");
+  if(!ALTS.length){box.innerHTML=`<div class="prow"><span class="nick" style="color:var(--faint)">brak kont — zaimportuj z In-Game Account Switcher albo dodaj ręcznie</span></div>`;}
+  else box.innerHTML=ALTS.map((a,i)=>{
+    const act=a.nick===ACTIVE;
+    return `<div class="prow"><img src="https://mc-heads.net/avatar/${a.nick}/26" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span class="nick">${a.nick}</span><span class="tag np">CRACK</span><button class="abtn use ${act?'on':''}" data-i="${i}">${act?'AKTYWNE':'UŻYJ'}</button><button class="abtn del" data-d="${i}">X</button></div>`;
+  }).join("");
+  document.getElementById("pcount").textContent=ALTS.length;
+  document.getElementById("accchip").textContent=ACTIVE||"—";
+  box.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{ACTIVE=ALTS[+b.dataset.i].nick;saveAlts();renderAlts();renderSrvs();say("aktywne konto: "+ACTIVE);});
+  box.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{
+    const gone=ALTS.splice(+b.dataset.d,1)[0];if(ACTIVE===gone.nick)ACTIVE=ALTS.length?ALTS[0].nick:"";
+    saveAlts();renderAlts();renderSrvs();say("usunięto konto: "+gone.nick);});
+}
+document.getElementById("addAcc").onclick=()=>document.getElementById("aform").classList.toggle("show");
+document.getElementById("asave").onclick=()=>{
+  const nick=document.getElementById("anick").value.trim();
+  if(!/^[A-Za-z0-9_]{3,16}$/.test(nick)){say("zły nick (3-16, litery/cyfry/_).","err");return;}
+  if(ALTS.some(a=>a.nick.toLowerCase()===nick.toLowerCase())){say("to konto już jest na liście.","warn");return;}
+  ALTS.push({nick,type:"crack"});if(!ACTIVE)ACTIVE=nick;saveAlts();renderAlts();
+  document.getElementById("anick").value="";document.getElementById("aform").classList.remove("show");
+  say("dodano cracka: "+nick+".","ok");
+};
+// import z In-Game Account Switcher (plik IAS.json z configu) — wyciągamy nicki, hasła nas nie obchodzą
+document.getElementById("importIAS").onclick=()=>document.getElementById("iasfile").click();
+document.getElementById("iasfile").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(rd.result);
+      const found=new Set();
+      const grab=v=>{
+        if(typeof v==="string"&&/^[A-Za-z0-9_]{3,16}$/.test(v)&&!/^(true|false|null|mojang|microsoft|offline|crack|premium)$/i.test(v))found.add(v);
+        else if(Array.isArray(v))v.forEach(grab);
+        else if(v&&typeof v==="object")Object.entries(v).forEach(([k,val])=>{
+          if(/^(user(name)?|nick|login|name|profile)$/i.test(k))grab(val);else grab(val);});
+      };
+      grab(j);
+      let added=0;
+      found.forEach(n=>{if(!ALTS.some(a=>a.nick.toLowerCase()===n.toLowerCase())){ALTS.push({nick:n,type:"crack"});added++;}});
+      if(!ACTIVE&&ALTS.length)ACTIVE=ALTS[0].nick;
+      saveAlts();renderAlts();
+      say(added?`zaimportowano z IAS: ${added} kont.`:"IAS: brak nowych nicków do dodania.",added?"ok":"warn");
+    }catch{ say("nie umiem przeczytać tego pliku (zły JSON).","err"); }
+    e.target.value="";
+  };
+  rd.readAsText(f);
+};
+renderAlts();
+// ---- auto-login: hasła per serwer (jak po /register), maskowane ----
+function activeAcc(){return ALTS.find(a=>a.nick===ACTIVE);}
+function renderSrvs(){
+  const acc=activeAcc(),box=document.getElementById("srvlist");
+  const entries=acc?Object.entries(acc.servers):[];
+  if(!acc){box.innerHTML=`<div class="prow"><span class="nick" style="color:var(--faint)">wybierz aktywne konto, żeby zarządzać hasłami</span></div>`;}
+  else if(!entries.length){box.innerHTML=`<div class="prow"><span class="nick" style="color:var(--faint)">brak haseł dla ${ACTIVE} — pierwsze wejście poprosi o /register</span></div>`;}
+  else box.innerHTML=entries.map(([srv])=>`<div class="prow"><span class="nick">${srv}</span><span class="tag np">••••••••</span><button class="abtn use" data-s="${srv}">WEJDŹ</button><button class="abtn del" data-x="${srv}">X</button></div>`).join("");
+  document.getElementById("scount").textContent=entries.length;
+  box.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{document.getElementById("serverIp").value=b.dataset.s;say("serwer ustawiony: "+b.dataset.s+" — kliknij GRAJ.");});
+  box.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{delete activeAcc().servers[b.dataset.x];saveAlts();renderSrvs();say("usunięto hasło: "+b.dataset.x);});
+}
+document.getElementById("addSrv").onclick=()=>{
+  if(!ACTIVE){say("najpierw wybierz aktywne konto.","warn");return;}
+  document.getElementById("srvform").classList.toggle("show");
+  document.getElementById("srvIp").value=document.getElementById("serverIp").value.trim();
+};
+document.getElementById("srvSave").onclick=()=>{
+  const acc=activeAcc();if(!acc){say("najpierw wybierz aktywne konto.","warn");return;}
+  const srv=document.getElementById("srvIp").value.trim().toLowerCase(),pass=document.getElementById("srvPass").value;
+  if(srv.length<3){say("wpisz adres serwera.","err");return;}
+  if(!pass.length){say("wpisz hasło (takie jak w /register).","err");return;}
+  const isNew=!acc.servers[srv];
+  acc.servers[srv]={pass};saveAlts();renderSrvs();
+  document.getElementById("srvPass").value="";document.getElementById("srvform").classList.remove("show");
+  say((isNew?"zapisano hasło":"zaktualizowano hasło")+` do ${srv} dla ${ACTIVE} (jak po /register).`,"ok");
+};
+try{document.getElementById("serverIp").value=localStorage.getItem("polonium-last-server")||"";}catch{}
+renderSrvs();
+</script>
+</body>
+</html>
