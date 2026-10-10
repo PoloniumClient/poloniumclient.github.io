@@ -1,34 +1,38 @@
-/* Strona ticketa — typowy chat na środku. */
+/* Strona ticketa — ten sam brutalist ledger co main + admin. */
 .t-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:40px 16px;min-height:100vh}
-.t-card{background:var(--panel,#15181c);border:1px solid var(--line2,#2f3740);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px #000;display:flex;flex-direction:column;max-height:calc(100vh - 80px)}
-.t-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line,#242a31);font:700 12px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:1.5px}
-.t-sub{padding:8px 16px;font:11px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);border-bottom:1px solid var(--line,#242a31)}
+.t-card{background:var(--panel,#161310);border:2px solid var(--line2,#54483c);border-radius:6px;overflow:hidden;box-shadow:8px 8px 0 #000;display:flex;flex-direction:column;max-height:calc(100vh - 80px)}
+.t-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--line2,#54483c);font-family:"Darker Grotesk",sans-serif;font-weight:700;font-size:15px}
+.t-head .pill{font-family:"JetBrains Mono",monospace}
+.t-sub{padding:8px 16px;font:500 11px "JetBrains Mono",monospace;color:var(--dim,#a89a83);border-bottom:2px solid var(--line,#38302a)}
 .t-sub:empty{display:none}
 #t-form{padding:14px 16px;display:flex;flex-direction:column;gap:9px}
-#t-form input{background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:9px 10px;font:13px "Space Grotesk",sans-serif;outline:none}
-#t-form input:focus{border-color:var(--acc)}
-#t-msgs{flex:1;min-height:200px;max-height:46vh;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
+#t-form input{background:#0b0b0e;border:2px solid var(--line,#38302a);border-radius:4px;color:var(--txt,#f2ede1);padding:9px 10px;font:13px "Space Grotesk",sans-serif;outline:none}
+#t-form input:focus{border-color:var(--acc,#caff3d)}
+#t-msgs{flex:1;min-height:200px;max-height:46vh;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px;overscroll-behavior:contain}
 #t-msgs:empty{display:none}
-.tm{max-width:85%;background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:11px;padding:8px 12px;font-size:13.5px;align-self:flex-start}
-.tm small{display:block;font:10px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);margin-bottom:2px}
+.tm{max-width:85%;background:#0b0b0e;border:2px solid var(--line,#38302a);border-radius:4px;padding:8px 12px;font-size:13.5px;align-self:flex-start}
+.tm small{display:block;font:500 10px "JetBrains Mono",monospace;color:var(--dim,#8a8f98);margin-bottom:2px}
 .tm p{margin:0;white-space:pre-wrap;word-break:break-word;color:var(--txt,#d7d7db)}
-.tm.m-user{align-self:flex-end;background:#151a20}
-.tm.m-admin{align-self:flex-end;border-color:#4f8cff}
-.tm.m-admin small{color:#4f8cff}
-.tm.m-auto{align-self:center;border-color:var(--acc-dim,#2a3312);font-size:12.5px}
-#t-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line,#242a31)}
-#t-input input{flex:1;background:#0c0e11;border:1px solid var(--line,#242a31);border-radius:8px;color:var(--txt,#d7d7db);padding:9px 10px;font:13px "Space Grotesk",sans-serif;outline:none;min-width:0}
-#t-input button{background:var(--acc);border:0;border-radius:8px;color:#10130a;font-weight:700;padding:0 20px;cursor:pointer;font-size:15px}
-.t-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--line,#242a31);font-size:12px}
+.tm.m-user{align-self:flex-end}
+.tm.m-admin{align-self:flex-end;background:var(--acc,#caff3d);border-color:var(--acc,#caff3d);color:#10130a}
+.tm.m-admin small,.tm.m-admin p{color:#10130a}
+.tm.m-auto{align-self:center;border-style:dashed;font-size:12.5px;color:var(--dim,#8a8f98)}
+#t-input{display:flex;gap:8px;padding:12px 16px;border-top:2px solid var(--line2,#54483c)}
+#t-input input{flex:1;background:#0b0b0e;border:2px solid var(--line,#38302a);border-radius:4px;color:var(--txt,#f2ede1);padding:9px 10px;font:13px "Space Grotesk",sans-serif;outline:none;min-width:0}
+#t-input input:focus{border-color:var(--acc,#caff3d)}
+#t-input button{background:var(--acc,#caff3d);border:0;border-radius:4px;color:#10130a;font-weight:700;padding:0 20px;cursor:pointer;font-size:15px}
+.t-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:2px solid var(--line,#38302a);font-size:12px}
 .t-foot a{color:var(--dim,#8a8f98);text-decoration:none}
-#t-close{background:transparent;border:1px solid var(--err,#ff5d5d);border-radius:7px;color:var(--err,#ff5d5d);cursor:pointer;padding:6px 14px;font-size:12px}
+.t-foot a:hover{color:var(--acc,#caff3d)}
+#t-close{background:transparent;border:2px solid var(--err,#ff4438);border-radius:4px;color:var(--err,#ff4438);cursor:pointer;padding:6px 14px;font-size:12px;font-weight:700}
+#t-close:hover{background:var(--err,#ff4438);color:#0a0908}
 .chat-days{display:flex;gap:6px;flex-wrap:wrap}
-.chat-days button{flex:1;background:var(--panel2,#101318);border:1px solid var(--line,#242a31);border-radius:7px;color:var(--txt,#d7d7db);padding:7px 4px;cursor:pointer;font:700 11px "JetBrains Mono",monospace;white-space:nowrap}
-.chat-days button.active{border-color:var(--acc);color:var(--acc)}
+.chat-days button{flex:1;background:var(--panel2,#1a1712);border:2px solid var(--line,#38302a);border-radius:4px;color:var(--txt,#f2ede1);padding:7px 4px;cursor:pointer;font:700 11px "JetBrains Mono",monospace;white-space:nowrap;transition:.12s}
+.chat-days button.active{border-color:var(--acc,#caff3d);color:#10130a;background:var(--acc,#caff3d)}
 .chat-custom{display:flex;gap:8px;align-items:center}
 .chat-custom input{flex:1;min-width:0}
-#t-price{font:700 13px "JetBrains Mono",monospace;color:var(--acc);white-space:nowrap}
+#t-price{font:700 13px "JetBrains Mono",monospace;color:var(--acc,#caff3d);white-space:nowrap}
 .pill{font:700 10px "JetBrains Mono",monospace;letter-spacing:1px;color:var(--dim,#8a8f98)}
-.pill.ok{color:var(--ok,#4ade80)}
-.pill.err{color:var(--err,#ff5d5d)}
+.pill.ok{color:var(--ok,#41d97e)}
+.pill.err{color:var(--err,#ff4438)}
 .hidden{display:none !important}
