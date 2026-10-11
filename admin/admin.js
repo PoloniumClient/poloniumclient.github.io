@@ -372,6 +372,7 @@ async function bugApi(action, params = {}) {
   const r = await fetch(BUG_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ token: bugToken(), action, ...params })
   });
   const j = await r.json().catch(() => ({}));
@@ -394,7 +395,6 @@ $('bug-tok-save').onclick = () => {
 const BUG_STATUS_PL = { queued: 'kolejka', new: 'nowe', accepted: 'przyjęte', fixed: 'naprawione', rejected: 'odrzucone' };
 async function loadBugs() {
   const box = $('bug-list');
-  if (!bugToken()) { box.innerHTML = 'wklej token bug-admin powyżej'; $('c-bugs').textContent = ''; return; }
   box.innerHTML = '...';
   let bugs = [];
   try {
