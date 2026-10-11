@@ -46,6 +46,7 @@
 
     <nav class="atabs" aria-label="sekcje panelu">
       <button data-t="tickets" class="active">tickety <b id="c-tickets"></b></button>
+      <button data-t="bugs">bugi <b id="c-bugs"></b></button>
       <button data-t="licenses">licencje</button>
       <button data-t="kill">kill-switch</button>
       <button data-t="updates">update</button>
@@ -77,6 +78,22 @@
         </div>
         <div class="arow" id="conv-ops"></div>
       </div>
+    </div>
+
+    <div class="atab" id="tab-bugs">
+      <div class="arow">
+        <input id="bug-token" type="password" placeholder="token bug-admin" autocomplete="off" aria-label="token bug-admin">
+        <button id="bug-tok-save" class="abtn ghost">zapisz</button>
+        <span id="bug-tok-msg" role="status"></span>
+      </div>
+      <div class="tfilters" role="group" aria-label="filtr bugów">
+        <button data-f="new" class="active">nowe</button>
+        <button data-f="accepted">przyjęte</button>
+        <button data-f="fixed">naprawione</button>
+        <button data-f="rejected">odrzucone</button>
+        <button data-f="all">wszystkie</button>
+      </div>
+      <div id="bug-list"></div>
     </div>
 
     <div class="atab" id="tab-licenses">

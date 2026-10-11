@@ -116,7 +116,7 @@ document.querySelectorAll('.atabs button').forEach(b => b.onclick = () => {
 });
 
 async function loadAll() {
-  try { await Promise.all([loadTickets(), loadLicenses(), loadKill(), loadUpdates(), loadAttempts(), loadDownloads(), loadAdmins()]); }
+  try { await Promise.all([loadTickets(), loadBugs(), loadLicenses(), loadKill(), loadUpdates(), loadAttempts(), loadDownloads(), loadAdmins()]); }
   catch (e) { /* 401 handled in api() */ }
 }
 
@@ -362,6 +362,73 @@ try { $('a-nick').value = adminNick(); } catch {}
 $('a-nick').addEventListener('input', (e) => {
   try { localStorage.setItem('polonium-admin-nick', e.target.value.trim().slice(0, 24)); } catch {}
 });
+
+// --- bugi (bug-reporty z gry i strony, osobna funkcja bug-admin + token) ---
+const BUG_API = 'https://jofzsdbebwbjbsitetli.supabase.co/functions/v1/bug-admin';
+function bugToken() {
+  try { return sessionStorage.getItem('polonium-bugadm') || ''; } catch { return ''; }
+}
+async function bugApi(action, params = {}) {
+  const r = await fetch(BUG_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: bugToken(), action, ...params })
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((j && j.error) || ('http ' + r.status));
+  return j;
+}
+let bugFilter = 'new';
+document.querySelectorAll('#tab-bugs .tfilters button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tab-bugs .tfilters button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  bugFilter = b.dataset.f;
+  loadBugs();
+});
+try { $('bug-token').value = bugToken(); } catch {}
+$('bug-tok-save').onclick = () => {
+  try { sessionStorage.setItem('polonium-bugadm', $('bug-token').value.trim()); } catch {}
+  $('bug-tok-msg').textContent = 'zapisano (na tę sesję karty)';
+  loadBugs();
+};
+const BUG_STATUS_PL = { queued: 'kolejka', new: 'nowe', accepted: 'przyjęte', fixed: 'naprawione', rejected: 'odrzucone' };
+async function loadBugs() {
+  const box = $('bug-list');
+  if (!bugToken()) { box.innerHTML = 'wklej token bug-admin powyżej'; $('c-bugs').textContent = ''; return; }
+  box.innerHTML = '...';
+  let bugs = [];
+  try {
+    const r = await bugApi('bugs.list');
+    bugs = r.bugs || [];
+  } catch (e) {
+    box.innerHTML = 'err: ' + esc(String(e.message || e).slice(0, 100));
+    return;
+  }
+  const fresh = bugs.filter(b => b.status === 'queued' || b.status === 'new').length;
+  $('c-bugs').textContent = fresh ? `(${fresh})` : '';
+  const list = bugFilter === 'all' ? bugs : bugs.filter(b =>
+    bugFilter === 'new' ? (b.status === 'new' || b.status === 'queued') : b.status === bugFilter);
+  box.innerHTML = list.length ? '' : 'brak bugów w tym filtrze';
+  list.forEach(b => {
+    const d = document.createElement('div');
+    d.className = 'trow';
+    const stCls = (b.status === 'new' || b.status === 'queued') ? 'st-open' : (b.status === 'rejected' ? 'st-off' : 'st-closed');
+    d.innerHTML = `<b>${esc(b.nick)}</b> [${esc(b.module)}] ${esc(b.title)} <span class="${stCls}">${esc(BUG_STATUS_PL[b.status] || b.status)}</span>` +
+      `<small>${b.contact ? esc(b.contact) + ' · ' : ''}${new Date(b.created_at).toLocaleString('pl-PL')} · #${esc(String(b.id).slice(0, 8))}</small>` +
+      `<p style="margin:6px 0">${esc(b.text)}</p>` +
+      `<div class="ops"><button class="abtn ghost b-acc">przyjmij</button>` +
+      `<button class="abtn ghost b-fix">naprawione ✓</button>` +
+      `<button class="abtn ghost b-rej">odrzuć</button>` +
+      `<button class="abtn danger b-del">usuń</button></div>`;
+    const [ba, bf, br, bd] = d.querySelectorAll('button');
+    const set = async (status) => { try { await bugApi('bugs.set', { id: b.id, status }); loadBugs(); } catch {} };
+    ba.onclick = () => set('accepted');
+    bf.onclick = () => set('fixed');
+    br.onclick = () => set('rejected');
+    bd.onclick = async () => { if (confirm('usunąć raport ' + b.nick + '?')) { try { await bugApi('bugs.delete', { id: b.id }); loadBugs(); } catch {} } };
+    box.appendChild(d);
+  });
+}
 
 // --- licencje (klucze generuje endpoint) ---
 $('lic-gen').onclick = async () => {
