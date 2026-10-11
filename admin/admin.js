@@ -227,8 +227,8 @@ setTimeout(loadStats, 1500);
 
 // --- tickety ---
 let ticketFilter = 'open';
-document.querySelectorAll('.tfilters button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('.tfilters button').forEach(x => x.classList.remove('active'));
+document.querySelectorAll('#tab-tickets .tfilters button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tab-tickets .tfilters button').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
   ticketFilter = b.dataset.f;
   loadTickets();
@@ -241,7 +241,7 @@ async function loadTickets() {
   $('c-tickets').textContent = open ? `(${open})` : '';
   const counts = { open: 0, closed: 0, cancelled: 0, all: data.length };
   data.forEach(t => { if (counts[t.status] !== undefined) counts[t.status]++; });
-  document.querySelectorAll('.tfilters button').forEach(b => {
+  document.querySelectorAll('#tab-tickets .tfilters button').forEach(b => {
     const f = b.dataset.f;
     const base = { open: 'otwarte', closed: 'zamknięte', cancelled: 'anulowane', all: 'wszystkie' }[f];
     b.textContent = counts[f] ? base + ' (' + counts[f] + ')' : base;
